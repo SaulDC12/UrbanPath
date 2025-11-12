@@ -1,0 +1,11 @@
+# Archivo de rutas - UrbanPath
+# Formato: origen, destino, peso
+
+1, 2, 10.5
+1, 4, 8.0
+1, 5, 12.0
+2, 3, 7.8
+2, 4, 15.0
+3, 4, 9.5
+3, 5, 11.2
+4, 5, 6.8

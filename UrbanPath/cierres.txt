@@ -1,0 +1,5 @@
+# Archivo de cierres - UrbanPath
+# Formato: estacionId (para cerrar estacion) o origen,destino (para cerrar ruta)
+
+# Cerrar ruta entre 2 y 4
+2, 4

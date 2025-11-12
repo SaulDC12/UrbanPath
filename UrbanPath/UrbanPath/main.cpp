@@ -3,6 +3,7 @@
 #include "StationBST.h"
 #include "DisjointSet.h"
 #include "Graph.h"
+#include "FileManager.h"
 #include <QApplication>
 #include <QDebug>
 
@@ -388,21 +389,161 @@ void testGraph()
     qDebug() << "\n=== PRUEBA DEL GRAFO COMPLETADA ===\n";
 }
 
+// Test function for FileManager class
+void testFileManager()
+{
+    qDebug() << "\n=== PRUEBA DE FILEMANAGER ===\n";
+    
+    FileManager fileManager;
+    
+    // Test 1: Check if files exist
+    qDebug() << "Test 1: Verificando existencia de archivos...";
+    qDebug() << "Archivo estaciones.txt existe?" << (fileManager.fileExists("estaciones.txt") ? "Si" : "No");
+    qDebug() << "Archivo rutas.txt existe?" << (fileManager.fileExists("rutas.txt") ? "Si" : "No");
+    qDebug() << "Archivo cierres.txt existe?" << (fileManager.fileExists("cierres.txt") ? "Si" : "No");
+    
+    // Test 2: Load stations
+    qDebug() << "\nTest 2: Cargando estaciones desde archivo...";
+    StationBST bst;
+    Graph graph(false);
+    
+    bool stationsLoaded = fileManager.loadStations("estaciones.txt", bst, graph);
+    if (stationsLoaded)
+    {
+        qDebug() << "Estaciones cargadas exitosamente.";
+        qDebug() << "Total de estaciones en BST:" << bst.count();
+        qDebug() << "Total de estaciones en Graph:" << graph.getStationCount();
+    }
+    
+    // Test 3: Load routes
+    qDebug() << "\nTest 3: Cargando rutas desde archivo...";
+    bool routesLoaded = fileManager.loadRoutes("rutas.txt", graph);
+    if (routesLoaded)
+    {
+        qDebug() << "Rutas cargadas exitosamente.";
+        graph.printAdjacencyList();
+    }
+    
+    // Test 4: Load closures
+    qDebug() << "\nTest 4: Aplicando cierres desde archivo...";
+    fileManager.loadClosures("cierres.txt", graph);
+    qDebug() << "Estado del grafo despues de cierres:";
+    graph.printAdjacencyList();
+    
+    // Test 5: Test algorithms with loaded data
+    qDebug() << "\nTest 5: Ejecutando algoritmos con datos cargados...";
+    
+    qDebug() << "\n--- BFS desde estacion 1 ---";
+    QList<int> bfsResult = graph.bfs(1);
+    QString bfsStr = "Recorrido: ";
+    for (int i = 0; i < bfsResult.size(); i++)
+    {
+        bfsStr += QString::number(bfsResult[i]);
+        if (i < bfsResult.size() - 1) bfsStr += " -> ";
+    }
+    qDebug() << bfsStr;
+    
+    qDebug() << "\n--- Dijkstra desde estacion 1 ---";
+    QHash<int, double> distances = graph.dijkstra(1);
+    for (auto it = distances.begin(); it != distances.end(); ++it)
+    {
+        qDebug() << QString("  Distancia a estacion %1: %2")
+            .arg(it.key())
+            .arg(it.value(), 0, 'f', 1);
+    }
+    
+    qDebug() << "\n--- MST con Kruskal ---";
+    QList<QPair<int, int>> mst = graph.kruskalMST();
+    double mstWeight = 0.0;
+    for (const auto& edge : mst)
+    {
+        double weight = graph.getEdgeWeight(edge.first, edge.second);
+        mstWeight += weight;
+        qDebug() << QString("  Arista (%1, %2) peso = %3")
+            .arg(edge.first)
+            .arg(edge.second)
+            .arg(weight, 0, 'f', 1);
+    }
+    qDebug() << "Peso total del MST:" << QString::number(mstWeight, 'f', 1);
+    
+    // Test 6: Save stations
+    qDebug() << "\nTest 6: Guardando estaciones en archivo...";
+    bool stationsSaved = fileManager.saveStations("estaciones_guardadas.txt", bst);
+    if (stationsSaved)
+    {
+        qDebug() << "Archivo estaciones_guardadas.txt creado correctamente.";
+    }
+    
+    // Test 7: Save routes
+    qDebug() << "\nTest 7: Guardando rutas en archivo...";
+    bool routesSaved = fileManager.saveRoutes("rutas_guardadas.txt", graph);
+    if (routesSaved)
+    {
+        qDebug() << "Archivo rutas_guardadas.txt creado correctamente.";
+    }
+    
+    // Test 8: Export report
+    qDebug() << "\nTest 8: Generando reporte del sistema...";
+    QString reportContent;
+    reportContent += "RESUMEN DEL SISTEMA\n";
+    reportContent += "===================\n\n";
+    reportContent += QString("Total de estaciones: %1\n").arg(graph.getStationCount());
+    reportContent += QString("Total de rutas activas: %2\n\n").arg(mst.size());
+    reportContent += "Estaciones registradas:\n";
+    
+    QList<Station> stations = graph.getAllStations();
+    for (const Station& station : stations)
+    {
+        reportContent += QString("  - %1: %2 (coordenadas: %3, %4)\n")
+            .arg(station.getId())
+            .arg(station.getName())
+            .arg(station.getX())
+            .arg(station.getY());
+    }
+    
+    reportContent += "\n\nArbol de Expansion Minima (MST):\n";
+    for (const auto& edge : mst)
+    {
+        double weight = graph.getEdgeWeight(edge.first, edge.second);
+        reportContent += QString("  - Ruta %1 <-> %2: peso = %3\n")
+            .arg(edge.first)
+            .arg(edge.second)
+            .arg(weight, 0, 'f', 1);
+    }
+    reportContent += QString("\nPeso total del MST: %1\n").arg(mstWeight, 0, 'f', 1);
+    
+    bool reportExported = fileManager.exportReport("reporte_sistema.txt", reportContent);
+    if (reportExported)
+    {
+        qDebug() << "Reporte generado exitosamente!";
+    }
+    
+    // Test 9: Test error handling
+    qDebug() << "\nTest 9: Probando manejo de errores...";
+    qDebug() << "Intentando cargar archivo inexistente...";
+    fileManager.loadStations("archivo_inexistente.txt", bst, graph);
+    
+    qDebug() << "\n=== PRUEBA DE FILEMANAGER COMPLETADA ===\n";
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     
     // Run Station tests
-    testStation();
+    //testStation();
     
     // Run StationBST tests
-    testStationBST();
+    //testStationBST();
     
     // Run DisjointSet tests
-    testDisjointSet();
+    //testDisjointSet();
     
     // Run Graph tests
-    testGraph();
+    //testGraph();
+    
+    // Run FileManager tests
+    testFileManager();
     
     MainWindow window;
     window.show();
