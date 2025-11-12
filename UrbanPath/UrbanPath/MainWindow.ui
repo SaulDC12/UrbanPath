@@ -1,29 +1,330 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<UI version="4.0" >
+<ui version="4.0">
  <class>MainWindowClass</class>
- <widget class="QMainWindow" name="MainWindowClass" >
-  <property name="objectName" >
-   <string notr="true">MainWindowClass</string>
-  </property>
-  <property name="geometry" >
+ <widget class="QMainWindow" name="MainWindowClass">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>1200</width>
+    <height>800</height>
    </rect>
   </property>
-  <property name="windowTitle" >
-   <string>MainWindow</string>
-  </property>  <widget class="QMenuBar" name="menuBar" />
-  <widget class="QToolBar" name="mainToolBar" />
-  <widget class="QWidget" name="centralWidget" />
-  <widget class="QStatusBar" name="statusBar" />
+  <property name="windowTitle">
+   <string>UrbanPath - Sistema de Transporte Urbano</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="mainLayout">
+      <item>
+       <widget class="QGroupBox" name="controlPanel">
+        <property name="title">
+         <string>Panel de Control</string>
+        </property>
+        <property name="minimumWidth">
+         <number>250</number>
+        </property>
+        <property name="maximumWidth">
+         <number>300</number>
+        </property>
+        <layout class="QVBoxLayout" name="controlLayout">
+         <item>
+          <widget class="QLabel" name="lblTitle">
+           <property name="text">
+            <string>&lt;b&gt;Operaciones del Sistema&lt;/b&gt;</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="Line" name="line">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnLoadData">
+           <property name="text">
+            <string>📂 Cargar Datos</string>
+           </property>
+           <property name="minimumHeight">
+            <number>35</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnSaveData">
+           <property name="text">
+            <string>💾 Guardar Datos</string>
+           </property>
+           <property name="minimumHeight">
+            <number>35</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="Line" name="line_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnDrawGraph">
+           <property name="text">
+            <string>🗺️ Dibujar Grafo</string>
+           </property>
+           <property name="minimumHeight">
+            <number>35</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnShortestPath">
+           <property name="text">
+            <string>🎯 Ruta Más Corta (Dijkstra)</string>
+           </property>
+           <property name="minimumHeight">
+            <number>35</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnMST">
+           <property name="text">
+            <string>🌳 MST (Kruskal/Prim)</string>
+           </property>
+           <property name="minimumHeight">
+            <number>35</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnTraversals">
+           <property name="text">
+            <string>📊 Recorridos del Árbol</string>
+           </property>
+           <property name="minimumHeight">
+            <number>35</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="Line" name="line_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnGenerateReports">
+           <property name="text">
+            <string>📄 Generar Reportes</string>
+           </property>
+           <property name="minimumHeight">
+            <number>35</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnClearGraph">
+           <property name="text">
+            <string>🧹 Limpiar Vista</string>
+           </property>
+           <property name="minimumHeight">
+            <number>35</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="lblStats">
+           <property name="text">
+            <string>&lt;i&gt;Estadísticas:&lt;/i&gt;&lt;br&gt;Estaciones: 0&lt;br&gt;Rutas: 0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGraphicsView" name="graphicsView">
+        <property name="renderHints">
+         <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform|QPainter::TextAntialiasing</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="logPanel">
+      <property name="title">
+       <string>Registro de Eventos</string>
+      </property>
+      <property name="minimumHeight">
+       <number>150</number>
+      </property>
+      <property name="maximumHeight">
+       <number>200</number>
+      </property>
+      <layout class="QVBoxLayout" name="logLayout">
+       <item>
+        <widget class="QTextEdit" name="logConsole">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="html">
+          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt; font-weight:600; color:#0000ff;&quot;&gt;=== Sistema UrbanPath Iniciado ===&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Listo para cargar datos y operar.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1200</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuArchivo">
+    <property name="title">
+     <string>Archivo</string>
+    </property>
+    <addaction name="actionCargarDatos"/>
+    <addaction name="actionGuardarDatos"/>
+    <addaction name="separator"/>
+    <addaction name="actionSalir"/>
+   </widget>
+   <widget class="QMenu" name="menuVer">
+    <property name="title">
+     <string>Ver</string>
+    </property>
+    <addaction name="actionDibujarGrafo"/>
+    <addaction name="actionMostrarRutaOptima"/>
+    <addaction name="actionLimpiarVista"/>
+   </widget>
+   <widget class="QMenu" name="menuReportes">
+    <property name="title">
+     <string>Reportes</string>
+    </property>
+    <addaction name="actionGenerarReportes"/>
+    <addaction name="actionVerUltimoReporte"/>
+   </widget>
+   <widget class="QMenu" name="menuAyuda">
+    <property name="title">
+     <string>Ayuda</string>
+    </property>
+    <addaction name="actionAcercaDe"/>
+   </widget>
+   <addaction name="menuArchivo"/>
+   <addaction name="menuVer"/>
+   <addaction name="menuReportes"/>
+   <addaction name="menuAyuda"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionCargarDatos">
+   <property name="text">
+    <string>Cargar Datos...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionGuardarDatos">
+   <property name="text">
+    <string>Guardar Datos...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionSalir">
+   <property name="text">
+    <string>Salir</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionDibujarGrafo">
+   <property name="text">
+    <string>Dibujar Grafo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionMostrarRutaOptima">
+   <property name="text">
+    <string>Mostrar Ruta Óptima</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionLimpiarVista">
+   <property name="text">
+    <string>Limpiar Vista</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionGenerarReportes">
+   <property name="text">
+    <string>Generar Reportes...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="actionVerUltimoReporte">
+   <property name="text">
+    <string>Ver Último Reporte</string>
+   </property>
+  </action>
+  <action name="actionAcercaDe">
+   <property name="text">
+    <string>Acerca de UrbanPath</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+  </action>
  </widget>
- <layoutDefault spacing="6" margin="11" />
- <pixmapfunction></pixmapfunction>
+ <layoutdefault spacing="6" margin="11"/>
  <resources>
-   <include location="MainWindow.qrc"/>
+  <include location="MainWindow.qrc"/>
  </resources>
  <connections/>
-</UI>
+</ui>
