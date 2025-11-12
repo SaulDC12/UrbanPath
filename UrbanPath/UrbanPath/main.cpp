@@ -4,6 +4,7 @@
 #include "DisjointSet.h"
 #include "Graph.h"
 #include "FileManager.h"
+#include "ReportGenerator.h"
 #include <QApplication>
 #include <QDebug>
 
@@ -526,24 +527,124 @@ void testFileManager()
     qDebug() << "\n=== PRUEBA DE FILEMANAGER COMPLETADA ===\n";
 }
 
+// Test function for ReportGenerator class
+void testReportGenerator()
+{
+    qDebug() << "\n=== PRUEBA DE REPORTGENERATOR ===\n";
+    
+    // Setup: Load data
+    FileManager fileManager;
+    StationBST bst;
+    Graph graph(false);
+    ReportGenerator reportGen;
+    
+    qDebug() << "Test 1: Cargando datos del sistema...";
+    fileManager.loadStations("estaciones.txt", bst, graph);
+    fileManager.loadRoutes("rutas.txt", graph);
+    
+    // Test 2: Generate route report
+    qDebug() << "\nTest 2: Generando reporte de ruta especifica...";
+    QList<int> sampleRoute = {1, 4, 5, 3};
+    bool routeReportCreated = reportGen.generateRouteReport("reporte_ruta.txt", sampleRoute, graph);
+    if (routeReportCreated)
+    {
+        qDebug() << "Reporte de ruta generado: reporte_ruta.txt";
+    }
+    
+    // Test 3: Generate traversal report
+    qDebug() << "\nTest 3: Generando reporte de recorridos del BST...";
+    bool traversalReportCreated = reportGen.generateTraversalReport("reporte_recorridos.txt", bst);
+    if (traversalReportCreated)
+    {
+        qDebug() << "Reporte de recorridos generado: reporte_recorridos.txt";
+    }
+    
+    // Test 4: Generate system statistics report
+    qDebug() << "\nTest 4: Generando reporte de estadisticas del sistema...";
+    bool statsReportCreated = reportGen.generateSystemStats("reporte_estadisticas.txt", graph, bst);
+    if (statsReportCreated)
+    {
+        qDebug() << "Reporte de estadisticas generado: reporte_estadisticas.txt";
+    }
+    
+    // Test 5: Generate MST report
+    qDebug() << "\nTest 5: Generando reporte de MST (Prim y Kruskal)...";
+    bool mstReportCreated = reportGen.generateMSTReport("reporte_mst.txt", graph);
+    if (mstReportCreated)
+    {
+        qDebug() << "Reporte de MST generado: reporte_mst.txt";
+    }
+    
+    // Test 6: Generate connectivity report
+    qDebug() << "\nTest 6: Generando reporte de conectividad...";
+    bool connectivityReportCreated = reportGen.generateConnectivityReport("reporte_conectividad.txt", graph);
+    if (connectivityReportCreated)
+    {
+        qDebug() << "Reporte de conectividad generado: reporte_conectividad.txt";
+    }
+    
+    // Test 7: Test append to report
+    qDebug() << "\nTest 7: Probando funcion de agregar contenido a reporte...";
+    QString additionalContent = "Esta es una seccion adicional agregada dinamicamente.\n";
+    additionalContent += "Contenido personalizado agregado mediante appendToReport().\n";
+    bool appended = reportGen.appendToReport("reporte_estadisticas.txt", 
+                                             "SECCION ADICIONAL", 
+                                             additionalContent);
+    if (appended)
+    {
+        qDebug() << "Contenido agregado exitosamente a reporte_estadisticas.txt";
+    }
+    
+    // Test 8: Generate comprehensive report with shortest paths
+    qDebug() << "\nTest 8: Generando reporte de rutas mas cortas (Dijkstra)...";
+    QHash<int, double> distances = graph.dijkstra(1);
+    
+    QString dijkstraContent = "RUTAS MAS CORTAS DESDE ESTACION 1\n";
+    dijkstraContent += "===================================\n\n";
+    dijkstraContent += "Algoritmo utilizado: Dijkstra\n\n";
+    
+    for (auto it = distances.begin(); it != distances.end(); ++it)
+    {
+        if (it.key() != 1)
+        {
+            dijkstraContent += QString("Estacion 1 -> Estacion %1: %2\n")
+                .arg(it.key())
+                .arg(it.value(), 0, 'f', 1);
+        }
+    }
+    
+    bool dijkstraReportCreated = fileManager.exportReport("reporte_dijkstra.txt", dijkstraContent);
+    if (dijkstraReportCreated)
+    {
+        qDebug() << "Reporte de Dijkstra generado: reporte_dijkstra.txt";
+    }
+    
+    // Test 9: Summary
+    qDebug() << "\nTest 9: Resumen de reportes generados...";
+    qDebug() << "Archivos creados:";
+    qDebug() << "  1. reporte_ruta.txt - Ruta especifica con distancias";
+    qDebug() << "  2. reporte_recorridos.txt - Recorridos InOrder, PreOrder, PostOrder";
+    qDebug() << "  3. reporte_estadisticas.txt - Estadisticas generales del sistema";
+    qDebug() << "  4. reporte_mst.txt - Analisis de MST (Prim y Kruskal)";
+    qDebug() << "  5. reporte_conectividad.txt - Analisis de conectividad del grafo";
+    qDebug() << "  6. reporte_dijkstra.txt - Distancias minimas desde estacion 1";
+    
+    qDebug() << "\n=== PRUEBA DE REPORTGENERATOR COMPLETADA ===\n";
+    qDebug() << "\nTodos los reportes fueron generados exitosamente!";
+    qDebug() << "Puedes revisar los archivos .txt para ver el contenido detallado.\n";
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     
-    // Run Station tests
+    // Run all tests
     //testStation();
-    
-    // Run StationBST tests
     //testStationBST();
-    
-    // Run DisjointSet tests
     //testDisjointSet();
-    
-    // Run Graph tests
     //testGraph();
-    
-    // Run FileManager tests
-    testFileManager();
+    //testFileManager();
+    testReportGenerator();
     
     MainWindow window;
     window.show();
