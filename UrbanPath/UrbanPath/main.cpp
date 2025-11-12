@@ -2,6 +2,7 @@
 #include "Station.h"
 #include "StationBST.h"
 #include "DisjointSet.h"
+#include "Graph.h"
 #include <QApplication>
 #include <QDebug>
 
@@ -253,6 +254,140 @@ void testDisjointSet()
     qDebug() << "\n=== PRUEBA DE DISJOINT SET COMPLETADA ===\n";
 }
 
+// Test function for Graph class
+void testGraph()
+{
+    qDebug() << "\n=== PRUEBA DEL GRAFO URBANPATH ===\n";
+    
+    // Create an undirected graph
+    Graph graph(false);
+    
+    // Test 1: Add stations
+    qDebug() << "Test 1: Agregando estaciones al grafo...";
+    graph.addStation(Station(1, "Estacion Central", 100.0, 100.0));
+    graph.addStation(Station(2, "Estacion Norte", 150.0, 50.0));
+    graph.addStation(Station(3, "Estacion Sur", 150.0, 150.0));
+    graph.addStation(Station(4, "Estacion Este", 200.0, 100.0));
+    graph.addStation(Station(5, "Estacion Oeste", 50.0, 100.0));
+    
+    qDebug() << "Estaciones agregadas correctamente.";
+    qDebug() << "Total de estaciones:" << graph.getStationCount();
+    
+    // Test 2: Add edges (routes)
+    qDebug() << "\nTest 2: Creando rutas entre estaciones...";
+    graph.addEdge(1, 2, 10.5);  // Central - Norte
+    graph.addEdge(1, 4, 8.0);   // Central - Este
+    graph.addEdge(1, 5, 12.0);  // Central - Oeste
+    graph.addEdge(2, 3, 7.8);   // Norte - Sur
+    graph.addEdge(2, 4, 15.0);  // Norte - Este
+    graph.addEdge(3, 4, 9.5);   // Sur - Este
+    graph.addEdge(3, 5, 11.2);  // Sur - Oeste
+    graph.addEdge(4, 5, 6.8);   // Este - Oeste
+    
+    qDebug() << "Rutas creadas entre estaciones.";
+    
+    // Print graph structure
+    graph.printGraph();
+    graph.printAdjacencyList();
+    
+    // Test 3: BFS traversal
+    qDebug() << "\nTest 3: Recorrido BFS (Breadth-First Search)...";
+    QList<int> bfsResult = graph.bfs(1);
+    QString bfsOutput = "Recorrido BFS (desde estacion 1): ";
+    for (int i = 0; i < bfsResult.size(); i++)
+    {
+        bfsOutput += QString::number(bfsResult[i]);
+        if (i < bfsResult.size() - 1)
+        {
+            bfsOutput += " -> ";
+        }
+    }
+    qDebug() << bfsOutput;
+    
+    // Test 4: DFS traversal
+    qDebug() << "\nTest 4: Recorrido DFS (Depth-First Search)...";
+    QList<int> dfsResult = graph.dfs(1);
+    QString dfsOutput = "Recorrido DFS (desde estacion 1): ";
+    for (int i = 0; i < dfsResult.size(); i++)
+    {
+        dfsOutput += QString::number(dfsResult[i]);
+        if (i < dfsResult.size() - 1)
+        {
+            dfsOutput += " -> ";
+        }
+    }
+    qDebug() << dfsOutput;
+    
+    // Test 5: Dijkstra shortest path
+    qDebug() << "\nTest 5: Algoritmo de Dijkstra (ruta mas corta)...";
+    QHash<int, double> distances = graph.dijkstra(1);
+    qDebug() << "Distancias mas cortas desde estacion 1:";
+    for (auto it = distances.begin(); it != distances.end(); ++it)
+    {
+        qDebug() << QString("  Estacion %1: %2")
+            .arg(it.key())
+            .arg(it.value(), 0, 'f', 1);
+    }
+    
+    // Test 6: Floyd-Warshall all-pairs shortest paths
+    qDebug() << "\nTest 6: Algoritmo de Floyd-Warshall (todas las distancias)...";
+    QHash<QPair<int, int>, double> allPaths = graph.floydWarshall();
+    qDebug() << "Matriz de distancias minimas (muestra parcial):";
+    qDebug() << "De 1 a 3:" << allPaths[QPair<int, int>(1, 3)];
+    qDebug() << "De 2 a 5:" << allPaths[QPair<int, int>(2, 5)];
+    qDebug() << "De 3 a 4:" << allPaths[QPair<int, int>(3, 4)];
+    
+    // Test 7: Prim's MST
+    qDebug() << "\nTest 7: Algoritmo de Prim (Arbol de Expansion Minima)...";
+    QList<QPair<int, int>> primEdges = graph.primMST();
+    qDebug() << "Aristas del MST (Prim):";
+    double primTotalWeight = 0.0;
+    for (const auto& edge : primEdges)
+    {
+        double weight = graph.getEdgeWeight(edge.first, edge.second);
+        qDebug() << QString("  (%1, %2) peso = %3")
+            .arg(edge.first)
+            .arg(edge.second)
+            .arg(weight, 0, 'f', 1);
+        primTotalWeight += weight;
+    }
+    qDebug() << "Peso total del MST (Prim):" << QString::number(primTotalWeight, 'f', 1);
+    
+    // Test 8: Kruskal's MST
+    qDebug() << "\nTest 8: Algoritmo de Kruskal (usando DisjointSet)...";
+    QList<QPair<int, int>> kruskalEdges = graph.kruskalMST();
+    qDebug() << "Aristas del MST (Kruskal):";
+    double kruskalTotalWeight = 0.0;
+    for (const auto& edge : kruskalEdges)
+    {
+        double weight = graph.getEdgeWeight(edge.first, edge.second);
+        qDebug() << QString("  (%1, %2) peso = %3")
+            .arg(edge.first)
+            .arg(edge.second)
+            .arg(weight, 0, 'f', 1);
+        kruskalTotalWeight += weight;
+    }
+    qDebug() << "Peso total del MST (Kruskal):" << QString::number(kruskalTotalWeight, 'f', 1);
+    
+    // Test 9: Edge operations
+    qDebug() << "\nTest 9: Operaciones con aristas...";
+    qDebug() << "Existe ruta entre 1 y 2?" << (graph.hasEdge(1, 2) ? "Si" : "No");
+    qDebug() << "Peso de la ruta (1, 2):" << graph.getEdgeWeight(1, 2);
+    
+    qDebug() << "\nEliminando ruta entre 2 y 3...";
+    graph.removeEdge(2, 3);
+    qDebug() << "Existe ruta entre 2 y 3?" << (graph.hasEdge(2, 3) ? "Si" : "No");
+    
+    // Test 10: Station removal
+    qDebug() << "\nTest 10: Eliminando estacion...";
+    qDebug() << "Eliminando estacion 5...";
+    graph.removeStation(5);
+    qDebug() << "Total de estaciones:" << graph.getStationCount();
+    graph.printAdjacencyList();
+    
+    qDebug() << "\n=== PRUEBA DEL GRAFO COMPLETADA ===\n";
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -265,6 +400,9 @@ int main(int argc, char *argv[])
     
     // Run DisjointSet tests
     testDisjointSet();
+    
+    // Run Graph tests
+    testGraph();
     
     MainWindow window;
     window.show();
