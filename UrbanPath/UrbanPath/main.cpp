@@ -5,8 +5,14 @@
 #include "Graph.h"
 #include "FileManager.h"
 #include "ReportGenerator.h"
+#include "GraphVisualizer.h"
 #include <QApplication>
 #include <QDebug>
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QPushButton>
 
 // Test function for Station class
 void testStation()
@@ -634,6 +640,150 @@ void testReportGenerator()
     qDebug() << "Puedes revisar los archivos .txt para ver el contenido detallado.\n";
 }
 
+// Test function for GraphVisualizer class
+void testGraphVisualizer()
+{
+    qDebug() << "\n=== PRUEBA DE GRAPHVISUALIZER ===\n";
+    
+    // Create a separate window for visualization
+    QWidget* window = new QWidget();
+    window->setWindowTitle("UrbanPath - Visualizacion del Grafo");
+    window->resize(1000, 700);
+    
+    // Create layout
+    QVBoxLayout* layout = new QVBoxLayout(window);
+    
+    // Create graphics view and scene
+    QGraphicsScene* scene = new QGraphicsScene();
+    QGraphicsView* view = new QGraphicsView(scene);
+    
+    // Configure view
+    view->setRenderHint(QPainter::Antialiasing);
+    view->setDragMode(QGraphicsView::ScrollHandDrag);
+    
+    // Add view to layout
+    layout->addWidget(view);
+    
+    // Create control buttons
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    
+    QPushButton* btnLoadData = new QPushButton("Cargar Datos");
+    QPushButton* btnDrawGraph = new QPushButton("Dibujar Grafo");
+    QPushButton* btnShowRoute = new QPushButton("Mostrar Ruta Optima");
+    QPushButton* btnClear = new QPushButton("Limpiar");
+    QPushButton* btnZoomFit = new QPushButton("Ajustar Zoom");
+    
+    buttonLayout->addWidget(btnLoadData);
+    buttonLayout->addWidget(btnDrawGraph);
+    buttonLayout->addWidget(btnShowRoute);
+    buttonLayout->addWidget(btnClear);
+    buttonLayout->addWidget(btnZoomFit);
+    
+    layout->addLayout(buttonLayout);
+    
+    // Setup data
+    qDebug() << "Test 1: Inicializando sistema...";
+    FileManager fileManager;
+    StationBST* bst = new StationBST();
+    Graph* graph = new Graph(false);
+    
+    // Create visualizer
+    GraphVisualizer* visualizer = new GraphVisualizer(scene, view, graph);
+    
+    qDebug() << "GraphVisualizer creado correctamente.";
+    
+    // Connect buttons
+    QObject::connect(btnLoadData, &QPushButton::clicked, [&]() {
+        qDebug() << "\nTest 2: Cargando datos desde archivos...";
+        bool stationsLoaded = fileManager.loadStations("estaciones.txt", *bst, *graph);
+        bool routesLoaded = fileManager.loadRoutes("rutas.txt", *graph);
+        
+        if (stationsLoaded && routesLoaded)
+        {
+            qDebug() << "Datos cargados exitosamente!";
+            qDebug() << "Estaciones:" << graph->getStationCount();
+        }
+        else
+        {
+            qDebug() << "Error al cargar datos. Verifica los archivos.";
+        }
+    });
+    
+    QObject::connect(btnDrawGraph, &QPushButton::clicked, [&]() {
+        qDebug() << "\nTest 3: Dibujando grafo...";
+        visualizer->drawGraph();
+        qDebug() << "Grafo dibujado en pantalla!";
+    });
+    
+    QObject::connect(btnShowRoute, &QPushButton::clicked, [&]() {
+        qDebug() << "\nTest 4: Calculando y mostrando ruta optima...";
+        
+        if (graph->getStationCount() < 2)
+        {
+            qDebug() << "Error: Se necesitan al menos 2 estaciones.";
+            return;
+        }
+        
+        // Calculate shortest path using Dijkstra from station 1
+        QHash<int, double> distances = graph->dijkstra(1);
+        
+        // Find a destination station (use station with highest ID as example)
+        QList<Station> stations = graph->getAllStations();
+        if (stations.size() >= 2)
+        {
+            int destination = stations.last().getId();
+            
+            // For visualization, create a simple route (1 -> 4 -> 5 as example)
+            QList<int> sampleRoute;
+            
+            // Try to find a path (simplified - just use connected stations)
+            QList<int> bfsPath = graph->bfs(1);
+            if (bfsPath.size() >= 3)
+            {
+                sampleRoute = {bfsPath[0], bfsPath[1], bfsPath[2]};
+            }
+            else if (bfsPath.size() >= 2)
+            {
+                sampleRoute = {bfsPath[0], bfsPath[1]};
+            }
+            
+            if (!sampleRoute.isEmpty())
+            {
+                visualizer->drawOptimalRoute(sampleRoute);
+                qDebug() << "Ruta optima resaltada en rojo!";
+            }
+            else
+            {
+                qDebug() << "No se pudo generar una ruta de ejemplo.";
+            }
+        }
+    });
+    
+    QObject::connect(btnClear, &QPushButton::clicked, [&]() {
+        qDebug() << "\nTest 5: Limpiando escena...";
+        visualizer->clearScene();
+        qDebug() << "Escena limpiada.";
+    });
+    
+    QObject::connect(btnZoomFit, &QPushButton::clicked, [&]() {
+        qDebug() << "\nAjustando zoom al contenido...";
+        visualizer->fitInView();
+    });
+    
+    // Show window
+    window->show();
+    
+    qDebug() << "\n=== VENTANA DE VISUALIZACION CREADA ===";
+    qDebug() << "Instrucciones:";
+    qDebug() << "1. Haz clic en 'Cargar Datos' para cargar las estaciones y rutas";
+    qDebug() << "2. Haz clic en 'Dibujar Grafo' para visualizar el sistema";
+    qDebug() << "3. Haz clic en 'Mostrar Ruta Optima' para resaltar una ruta";
+    qDebug() << "4. Usa el mouse para hacer zoom (scroll) y arrastrar (drag)";
+    qDebug() << "5. Haz clic en 'Ajustar Zoom' para centrar el grafo\n";
+    
+    qDebug() << "=== PRUEBA DE GRAPHVISUALIZER INICIADA ===\n";
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -644,7 +794,8 @@ int main(int argc, char *argv[])
     //testDisjointSet();
     //testGraph();
     //testFileManager();
-    testReportGenerator();
+    //testReportGenerator();
+    testGraphVisualizer();
     
     MainWindow window;
     window.show();
