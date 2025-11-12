@@ -1,0 +1,32 @@
+========================================
+  REPORTE DE RECORRIDOS DEL ARBOL BST
+========================================
+Fecha: 2025-11-12
+Hora: 04:06:04
+========================================
+
+
+RECORRIDO IN-ORDER (Izquierda - Raiz - Derecha)
+-----------------------------------------------
+Orden: Ascendente por ID de estacion
+
+
+Total de estaciones (InOrder): 0
+
+RECORRIDO PRE-ORDER (Raiz - Izquierda - Derecha)
+------------------------------------------------
+Orden: Visita raiz primero, luego subarboles
+
+
+Total de estaciones (PreOrder): 0
+
+RECORRIDO POST-ORDER (Izquierda - Derecha - Raiz)
+-------------------------------------------------
+Orden: Visita subarboles primero, luego raiz
+
+
+Total de estaciones (PostOrder): 0
+
+========================================
+  Fin del reporte
+========================================

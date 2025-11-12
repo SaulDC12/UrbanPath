@@ -8,24 +8,35 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui.setupUi(this);
     
+    // Apply dark theme stylesheet
+    applyDarkTheme();
+    
     // Initialize graphics scene and view
     scene = new QGraphicsScene(this);
-    ui.graphicsView->setScene(scene);
+    ui.graphicsViewGraph->setScene(scene);
     
     // Initialize visualizer
-    visualizer = new GraphVisualizer(scene, ui.graphicsView, &graph);
+    visualizer = new GraphVisualizer(scene, ui.graphicsViewGraph, &graph);
     
     // Setup connections
     setupConnections();
     
-    // Initial message
-    logMessage("=== Sistema UrbanPath Iniciado ===", "blue");
-    logMessage("Use 'Cargar Datos' para comenzar.");
+    // Initial messages
+    logBST("=== Sistema UrbanPath Iniciado ===", "blue");
+    logBST("Listo para gestionar estaciones.");
+    logGraph("=== Red de Transporte Lista ===", "blue");
+    logGraph("Listo para gestionar rutas.");
     
-    statusBar()->showMessage("Listo para operar");
+    statusBar()->showMessage("Sistema UrbanPath listo para operar");
     
     // Try to load background image
     loadBackgroundImage();
+    
+    // Load initial data if files exist
+    if (fileManager.fileExists("estaciones.txt"))
+    {
+        onActionCargarDatos();
+    }
 }
 
 MainWindow::~MainWindow()
@@ -34,29 +45,143 @@ MainWindow::~MainWindow()
     delete scene;
 }
 
-// Setup signal/slot connections
-void MainWindow::setupConnections()
+// Apply dark theme stylesheet
+void MainWindow::applyDarkTheme()
 {
-    // Button connections
-    connect(ui.btnLoadData, &QPushButton::clicked, this, &MainWindow::onLoadDataClicked);
-    connect(ui.btnSaveData, &QPushButton::clicked, this, &MainWindow::onSaveDataClicked);
-    connect(ui.btnDrawGraph, &QPushButton::clicked, this, &MainWindow::onDrawGraphClicked);
-    connect(ui.btnShortestPath, &QPushButton::clicked, this, &MainWindow::onShortestPathClicked);
-    connect(ui.btnMST, &QPushButton::clicked, this, &MainWindow::onMSTClicked);
-    connect(ui.btnTraversals, &QPushButton::clicked, this, &MainWindow::onTraversalsClicked);
-    connect(ui.btnGenerateReports, &QPushButton::clicked, this, &MainWindow::onGenerateReportsClicked);
-    connect(ui.btnClearGraph, &QPushButton::clicked, this, &MainWindow::onClearGraphClicked);
+    QString darkTheme = R"(
+        QMainWindow {
+            background-color: #101820;
+        }
+        
+        QWidget {
+            background-color: #101820;
+            color: #E0E0E0;
+            font-family: 'Segoe UI';
+            font-size: 10pt;
+        }
+        
+        QPushButton {
+            background-color: #1F2B3A;
+            border-radius: 8px;
+            padding: 10px;
+            color: #E0E0E0;
+            border: 1px solid #2A3C4F;
+            font-weight: bold;
+        }
+        
+        QPushButton:hover {
+            background-color: #2E3B4E;
+            border: 1px solid #00CC88;
+        }
+        
+        QPushButton:pressed {
+            background-color: #0E1A2B;
+        }
+        
+        QLineEdit, QComboBox, QDoubleSpinBox {
+            background-color: #1C2835;
+            border: 2px solid #2A3C4F;
+            border-radius: 6px;
+            padding: 8px;
+            color: #E0E0E0;
+        }
+        
+        QLineEdit:focus, QComboBox:focus, QDoubleSpinBox:focus {
+            border: 2px solid #00CC88;
+        }
+        
+        QTextEdit {
+            background-color: #0E1A2B;
+            border: 1px solid #2A3C4F;
+            border-radius: 6px;
+            color: #00CC88;
+            padding: 8px;
+        }
+        
+        QGroupBox {
+            background-color: #1C2835;
+            border: 2px solid #2A3C4F;
+            border-radius: 10px;
+            margin-top: 10px;
+            padding-top: 20px;
+            font-weight: bold;
+            color: #00CC88;
+        }
+        
+        QGroupBox::title {
+            subcontrol-origin: margin;
+            left: 15px;
+            padding: 0 5px;
+        }
+        
+        QTabWidget::pane {
+            border: 2px solid #2A3C4F;
+            background-color: #1C2835;
+            border-radius: 8px;
+        }
+        
+        QTabBar::tab {
+            background-color: #1F2B3A;
+            color: #E0E0E0;
+            padding: 12px 24px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            margin-right: 4px;
+        }
+        
+        QTabBar::tab:selected {
+            background-color: #00CC88;
+            color: #0E1A2B;
+            font-weight: bold;
+        }
+        
+        QTabBar::tab:hover {
+            background-color: #2E3B4E;
+        }
+        
+        QLabel {
+            color: #E0E0E0;
+        }
+        
+        QStatusBar {
+            background-color: #0E1A2B;
+            color: #00CC88;
+            border-top: 2px solid #2A3C4F;
+        }
+        
+        QMenuBar {
+            background-color: #0E1A2B;
+            color: #E0E0E0;
+            border-bottom: 2px solid #2A3C4F;
+        }
+        
+        QMenuBar::item {
+            padding: 8px 12px;
+        }
+        
+        QMenuBar::item:selected {
+            background-color: #1F2B3A;
+        }
+        
+        QMenu {
+            background-color: #1F2B3A;
+            color: #E0E0E0;
+            border: 2px solid #2A3C4F;
+        }
+        
+        QMenu::item:selected {
+            background-color: #00CC88;
+            color: #0E1A2B;
+        }
+        
+        QGraphicsView {
+            background-color: #0E1A2B;
+            border: 2px solid #2A3C4F;
+            border-radius: 8px;
+        }
+    )";
     
-    // Menu action connections
-    connect(ui.actionCargarDatos, &QAction::triggered, this, &MainWindow::onActionCargarDatos);
-    connect(ui.actionGuardarDatos, &QAction::triggered, this, &MainWindow::onActionGuardarDatos);
-    connect(ui.actionSalir, &QAction::triggered, this, &MainWindow::onActionSalir);
-    connect(ui.actionDibujarGrafo, &QAction::triggered, this, &MainWindow::onActionDibujarGrafo);
-    connect(ui.actionMostrarRutaOptima, &QAction::triggered, this, &MainWindow::onActionMostrarRutaOptima);
-    connect(ui.actionLimpiarVista, &QAction::triggered, this, &MainWindow::onActionLimpiarVista);
-    connect(ui.actionGenerarReportes, &QAction::triggered, this, &MainWindow::onActionGenerarReportes);
-    connect(ui.actionVerUltimoReporte, &QAction::triggered, this, &MainWindow::onActionVerUltimoReporte);
-    connect(ui.actionAcercaDe, &QAction::triggered, this, &MainWindow::onActionAcercaDe);
+    this->setStyleSheet(darkTheme);
 }
 
 // Load background image
@@ -65,43 +190,36 @@ void MainWindow::loadBackgroundImage()
     if (fileManager.fileExists("data/mapa.png"))
     {
         visualizer->loadBackground("data/mapa.png");
-        logMessage("Mapa de fondo cargado correctamente.", "green");
+        logGraph("Mapa de fondo cargado correctamente.", "green");
     }
     else if (fileManager.fileExists("mapa.png"))
     {
         visualizer->loadBackground("mapa.png");
-        logMessage("Mapa de fondo cargado correctamente.", "green");
+        logGraph("Mapa de fondo cargado correctamente.", "green");
     }
     else
     {
-        logMessage("Advertencia: No se encontro imagen de fondo (data/mapa.png).", "orange");
-        logMessage("El grafo se dibujara sin mapa de fondo.");
+        logGraph("Advertencia: No se encontro imagen de fondo.", "orange");
     }
 }
 
-// Update statistics display
-void MainWindow::updateStatistics()
+// Update combo boxes with station IDs
+void MainWindow::updateComboBoxes()
 {
-    int stationCount = graph.getStationCount();
-    int routeCount = 0;
+    ui.comboOrigin->clear();
+    ui.comboDestination->clear();
     
     QList<Station> stations = graph.getAllStations();
     for (const Station& station : stations)
     {
-        QList<QPair<int, double>> neighbors = graph.getNeighbors(station.getId());
-        routeCount += neighbors.size();
+        QString text = QString("%1 - %2").arg(station.getId()).arg(station.getName());
+        ui.comboOrigin->addItem(text, station.getId());
+        ui.comboDestination->addItem(text, station.getId());
     }
-    routeCount /= 2;  // Undirected graph
-    
-    QString statsText = QString("<i>Estadisticas:</i><br>Estaciones: %1<br>Rutas: %2")
-        .arg(stationCount)
-        .arg(routeCount);
-    
-    ui.lblStats->setText(statsText);
 }
 
-// Log message to console
-void MainWindow::logMessage(const QString& message, const QString& color)
+// Log message to BST console
+void MainWindow::logBST(const QString& message, const QString& color)
 {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss");
     QString formattedMessage = QString("<span style='color:%1'>[%2] %3</span>")
@@ -109,7 +227,19 @@ void MainWindow::logMessage(const QString& message, const QString& color)
         .arg(timestamp)
         .arg(message);
     
-    ui.logConsole->append(formattedMessage);
+    ui.txtBSTOutput->append(formattedMessage);
+}
+
+// Log message to Graph console
+void MainWindow::logGraph(const QString& message, const QString& color)
+{
+    QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss");
+    QString formattedMessage = QString("<span style='color:%1'>[%2] %3</span>")
+        .arg(color)
+        .arg(timestamp)
+        .arg(message);
+    
+    ui.txtGraphOutput->append(formattedMessage);
 }
 
 // Show info message
@@ -131,10 +261,390 @@ bool MainWindow::confirmAction(const QString& title, const QString& message)
         QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
 }
 
-// Slot: Load Data
-void MainWindow::onLoadDataClicked()
+// ====== BST TAB SLOTS ======
+
+// Slot: Add Station
+void MainWindow::onAddStationClicked()
 {
-    logMessage("Cargando datos del sistema...", "blue");
+    int id = ui.txtStationID->text().toInt();
+    QString name = ui.txtStationName->text();
+    double x = ui.txtStationX->text().toDouble();
+    double y = ui.txtStationY->text().toDouble();
+    
+    if (id <= 0 || name.isEmpty())
+    {
+        showErrorMessage("Error", "Por favor ingrese ID y nombre validos.");
+        return;
+    }
+    
+    Station station(id, name, x, y);
+    bst.insert(station);
+    graph.addStation(station);
+    
+    logBST(QString("Estacion agregada: [%1] %2 (X:%3, Y:%4)")
+        .arg(id).arg(name).arg(x).arg(y), "green");
+    
+    updateComboBoxes();
+    onClearStationClicked();
+    statusBar()->showMessage(QString("Estacion %1 agregada correctamente").arg(id), 3000);
+}
+
+// Slot: Remove Station
+void MainWindow::onRemoveStationClicked()
+{
+    int id = ui.txtStationID->text().toInt();
+    
+    if (id <= 0)
+    {
+        showErrorMessage("Error", "Por favor ingrese un ID valido.");
+        return;
+    }
+    
+    if (bst.remove(id))
+    {
+        graph.removeStation(id);
+        logBST(QString("Estacion %1 eliminada correctamente.").arg(id), "red");
+        updateComboBoxes();
+        onClearStationClicked();
+        statusBar()->showMessage(QString("Estacion %1 eliminada").arg(id), 3000);
+    }
+    else
+    {
+        logBST(QString("Error: Estacion %1 no encontrada.").arg(id), "red");
+        showErrorMessage("Error", QString("No se encontro la estacion con ID %1").arg(id));
+    }
+}
+
+// Slot: Search Station
+void MainWindow::onSearchStationClicked()
+{
+    int id = ui.txtStationID->text().toInt();
+    
+    if (id <= 0)
+    {
+        showErrorMessage("Error", "Por favor ingrese un ID valido.");
+        return;
+    }
+    
+    Station* station = bst.search(id);
+    
+    if (station)
+    {
+        ui.txtStationName->setText(station->getName());
+        ui.txtStationX->setText(QString::number(station->getX()));
+        ui.txtStationY->setText(QString::number(station->getY()));
+        
+        logBST(QString("Estacion encontrada: [%1] %2")
+            .arg(station->getId()).arg(station->getName()), "blue");
+        
+        statusBar()->showMessage(QString("Estacion %1 encontrada").arg(id), 3000);
+    }
+    else
+    {
+        logBST(QString("Estacion con ID %1 no encontrada.").arg(id), "orange");
+        showInfoMessage("Busqueda", QString("No se encontro la estacion con ID %1").arg(id));
+    }
+}
+
+// Slot: Clear Station Fields
+void MainWindow::onClearStationClicked()
+{
+    ui.txtStationID->clear();
+    ui.txtStationName->clear();
+    ui.txtStationX->clear();
+    ui.txtStationY->clear();
+    ui.txtStationID->setFocus();
+}
+
+// Slot: In-Order Traversal
+void MainWindow::onInOrderClicked()
+{
+    QList<Station> stations = bst.inOrder();
+    
+    logBST("=== Recorrido In-Order (Ascendente) ===", "blue");
+    for (int i = 0; i < stations.size(); i++)
+    {
+        const Station& s = stations[i];
+        logBST(QString("%1. [%2] %3").arg(i+1).arg(s.getId()).arg(s.getName()), "black");
+    }
+    logBST(QString("Total: %1 estaciones").arg(stations.size()), "green");
+}
+
+// Slot: Pre-Order Traversal
+void MainWindow::onPreOrderClicked()
+{
+    QList<Station> stations = bst.preOrder();
+    
+    logBST("=== Recorrido Pre-Order ===", "blue");
+    for (int i = 0; i < stations.size(); i++)
+    {
+        const Station& s = stations[i];
+        logBST(QString("%1. [%2] %3").arg(i+1).arg(s.getId()).arg(s.getName()), "black");
+    }
+    logBST(QString("Total: %1 estaciones").arg(stations.size()), "green");
+}
+
+// Slot: Post-Order Traversal
+void MainWindow::onPostOrderClicked()
+{
+    QList<Station> stations = bst.postOrder();
+    
+    logBST("=== Recorrido Post-Order ===", "blue");
+    for (int i = 0; i < stations.size(); i++)
+    {
+        const Station& s = stations[i];
+        logBST(QString("%1. [%2] %3").arg(i+1).arg(s.getId()).arg(s.getName()), "black");
+    }
+    logBST(QString("Total: %1 estaciones").arg(stations.size()), "green");
+}
+
+// Slot: Export Traversals
+void MainWindow::onExportTraversalsClicked()
+{
+    bool success = reportGenerator.generateTraversalReport("reporte_recorridos.txt", bst);
+    
+    if (success)
+    {
+        logBST("Recorridos exportados: reporte_recorridos.txt", "green");
+        statusBar()->showMessage("Recorridos exportados correctamente", 3000);
+        showInfoMessage("Exportacion Exitosa", "Los recorridos han sido exportados a reporte_recorridos.txt");
+    }
+    else
+    {
+        logBST("Error al exportar recorridos.", "red");
+        showErrorMessage("Error", "No se pudieron exportar los recorridos.");
+    }
+}
+
+// ====== GRAPH TAB SLOTS ======
+
+// Slot: Add Route
+void MainWindow::onAddRouteClicked()
+{
+    if (ui.comboOrigin->count() == 0 || ui.comboDestination->count() == 0)
+    {
+        showErrorMessage("Error", "Debe cargar estaciones primero.");
+        return;
+    }
+    
+    int origin = ui.comboOrigin->currentData().toInt();
+    int dest = ui.comboDestination->currentData().toInt();
+    double weight = ui.spinWeight->value();
+    
+    if (origin == dest)
+    {
+        showErrorMessage("Error", "Origen y destino deben ser diferentes.");
+        return;
+    }
+    
+    graph.addEdge(origin, dest, weight);
+    
+    logGraph(QString("Ruta agregada: %1 <-> %2 (distancia %3)")
+        .arg(origin).arg(dest).arg(weight, 0, 'f', 1), "green");
+    
+    statusBar()->showMessage(QString("Ruta %1-%2 agregada").arg(origin).arg(dest), 3000);
+}
+
+// Slot: Remove Route
+void MainWindow::onRemoveRouteClicked()
+{
+    if (ui.comboOrigin->count() == 0 || ui.comboDestination->count() == 0)
+    {
+        showErrorMessage("Error", "Debe cargar estaciones primero.");
+        return;
+    }
+    
+    int origin = ui.comboOrigin->currentData().toInt();
+    int dest = ui.comboDestination->currentData().toInt();
+    
+    graph.removeEdge(origin, dest);
+    
+    logGraph(QString("Ruta eliminada: %1 <-> %2").arg(origin).arg(dest), "red");
+    statusBar()->showMessage(QString("Ruta %1-%2 eliminada").arg(origin).arg(dest), 3000);
+}
+
+// Slot: Shortest Path (Dijkstra)
+void MainWindow::onShortestPathClicked()
+{
+    if (ui.comboOrigin->count() == 0 || ui.comboDestination->count() == 0)
+    {
+        showErrorMessage("Error", "Debe cargar estaciones primero.");
+        return;
+    }
+    
+    int origin = ui.comboOrigin->currentData().toInt();
+    int dest = ui.comboDestination->currentData().toInt();
+    
+    logGraph(QString("Calculando ruta mas corta de %1 a %2...").arg(origin).arg(dest), "blue");
+    
+    QHash<int, double> distances = graph.dijkstra(origin);
+    
+    if (distances[dest] >= std::numeric_limits<double>::infinity())
+    {
+        logGraph("No existe ruta entre las estaciones seleccionadas.", "red");
+        showInfoMessage("Sin Ruta", "No hay conexion entre las estaciones seleccionadas.");
+        return;
+    }
+    
+    QList<int> route;
+    route.append(origin);
+    route.append(dest);
+    
+    visualizer->drawOptimalRoute(route);
+    
+    logGraph(QString("Ruta mas corta: %1 -> %2 (distancia: %3)")
+        .arg(origin).arg(dest).arg(distances[dest], 0, 'f', 1), "green");
+    
+    reportGenerator.generateRouteReport("reporte_ruta_corta.txt", route, graph);
+    statusBar()->showMessage(QString("Distancia: %1").arg(distances[dest], 0, 'f', 1), 5000);
+}
+
+// Slot: Floyd-Warshall
+void MainWindow::onFloydClicked()
+{
+    logGraph("Ejecutando algoritmo de Floyd-Warshall...", "blue");
+    
+    QHash<QPair<int, int>, double> allPaths = graph.floydWarshall();
+    
+    logGraph(QString("Floyd-Warshall completado. %1 pares de distancias calculadas.")
+        .arg(allPaths.size()), "green");
+    
+    statusBar()->showMessage("Floyd-Warshall ejecutado correctamente", 3000);
+}
+
+// Slot: Prim MST
+void MainWindow::onPrimMSTClicked()
+{
+    logGraph("Calculando MST con algoritmo de Prim...", "blue");
+    
+    QList<QPair<int, int>> mst = graph.primMST();
+    
+    if (mst.isEmpty())
+    {
+        logGraph("Error: No se pudo calcular el MST.", "red");
+        return;
+    }
+    
+    double totalWeight = 0.0;
+    logGraph("Aristas del MST (Prim):", "blue");
+    for (const auto& edge : mst)
+    {
+        double weight = graph.getEdgeWeight(edge.first, edge.second);
+        totalWeight += weight;
+        logGraph(QString("  %1 <-> %2: %3")
+            .arg(edge.first).arg(edge.second).arg(weight, 0, 'f', 1), "black");
+    }
+    
+    logGraph(QString("Peso total del MST: %1").arg(totalWeight, 0, 'f', 1), "green");
+    statusBar()->showMessage(QString("MST (Prim) - Peso: %1").arg(totalWeight, 0, 'f', 1), 5000);
+}
+
+// Slot: Kruskal MST
+void MainWindow::onKruskalMSTClicked()
+{
+    logGraph("Calculando MST con algoritmo de Kruskal...", "blue");
+    
+    QList<QPair<int, int>> mst = graph.kruskalMST();
+    
+    if (mst.isEmpty())
+    {
+        logGraph("Error: No se pudo calcular el MST.", "red");
+        return;
+    }
+    
+    double totalWeight = 0.0;
+    logGraph("Aristas del MST (Kruskal):", "blue");
+    for (const auto& edge : mst)
+    {
+        double weight = graph.getEdgeWeight(edge.first, edge.second);
+        totalWeight += weight;
+        logGraph(QString("  %1 <-> %2: %3")
+            .arg(edge.first).arg(edge.second).arg(weight, 0, 'f', 1), "black");
+    }
+    
+    logGraph(QString("Peso total del MST: %1").arg(totalWeight, 0, 'f', 1), "green");
+    
+    reportGenerator.generateMSTReport("reporte_mst.txt", graph);
+    statusBar()->showMessage(QString("MST (Kruskal) - Peso: %1").arg(totalWeight, 0, 'f', 1), 5000);
+}
+
+// Slot: BFS
+void MainWindow::onBFSClicked()
+{
+    if (ui.comboOrigin->count() == 0)
+    {
+        showErrorMessage("Error", "Debe cargar estaciones primero.");
+        return;
+    }
+    
+    int origin = ui.comboOrigin->currentData().toInt();
+    
+    logGraph(QString("Ejecutando BFS desde estacion %1...").arg(origin), "blue");
+    
+    QList<int> bfsResult = graph.bfs(origin);
+    
+    QString result = "BFS: ";
+    for (int i = 0; i < bfsResult.size(); i++)
+    {
+        result += QString::number(bfsResult[i]);
+        if (i < bfsResult.size() - 1) result += " -> ";
+    }
+    
+    logGraph(result, "green");
+    statusBar()->showMessage(QString("BFS: %1 estaciones alcanzadas").arg(bfsResult.size()), 3000);
+}
+
+// Slot: DFS
+void MainWindow::onDFSClicked()
+{
+    if (ui.comboOrigin->count() == 0)
+    {
+        showErrorMessage("Error", "Debe cargar estaciones primero.");
+        return;
+    }
+    
+    int origin = ui.comboOrigin->currentData().toInt();
+    
+    logGraph(QString("Ejecutando DFS desde estacion %1...").arg(origin), "blue");
+    
+    QList<int> dfsResult = graph.dfs(origin);
+    
+    QString result = "DFS: ";
+    for (int i = 0; i < dfsResult.size(); i++)
+    {
+        result += QString::number(dfsResult[i]);
+        if (i < dfsResult.size() - 1) result += " -> ";
+    }
+    
+    logGraph(result, "green");
+    statusBar()->showMessage(QString("DFS: %1 estaciones alcanzadas").arg(dfsResult.size()), 3000);
+}
+
+// Slot: Draw Graph
+void MainWindow::onDrawGraphClicked()
+{
+    logGraph("Dibujando grafo...", "blue");
+    visualizer->drawGraph();
+    logGraph("Grafo dibujado correctamente.", "green");
+    statusBar()->showMessage("Grafo visualizado", 2000);
+}
+
+// Slot: Clear Graph
+void MainWindow::onClearGraphClicked()
+{
+    logGraph("Limpiando vista del grafo...", "blue");
+    visualizer->clearScene();
+    logGraph("Vista limpiada.", "green");
+    statusBar()->showMessage("Vista limpiada", 2000);
+}
+
+// ====== MENU ACTIONS ======
+
+// Menu Action: Cargar Datos
+void MainWindow::onActionCargarDatos()
+{
+    logBST("Cargando datos del sistema...", "blue");
+    logGraph("Cargando datos del sistema...", "blue");
     statusBar()->showMessage("Cargando datos...");
     
     // Clear existing data
@@ -146,10 +656,11 @@ void MainWindow::onLoadDataClicked()
     
     if (!stationsLoaded)
     {
-        logMessage("Error: No se pudieron cargar las estaciones.", "red");
+        logBST("Error: No se pudieron cargar las estaciones.", "red");
+        logGraph("Error: No se pudieron cargar las estaciones.", "red");
         showErrorMessage("Error de Carga", 
             "No se pudo cargar el archivo estaciones.txt.\n"
-            "Verifique que el archivo exista y tenga el formato correcto.");
+            "Verifique que el archivo exista.");
         statusBar()->showMessage("Error al cargar datos");
         return;
     }
@@ -159,32 +670,24 @@ void MainWindow::onLoadDataClicked()
     
     if (!routesLoaded)
     {
-        logMessage("Advertencia: No se pudieron cargar las rutas.", "orange");
-    }
-    
-    // Load closures (optional)
-    if (fileManager.fileExists("cierres.txt"))
-    {
-        fileManager.loadClosures("cierres.txt", graph);
+        logGraph("Advertencia: No se pudieron cargar las rutas.", "orange");
     }
     
     dataLoaded = true;
-    updateStatistics();
+    updateComboBoxes();
     
-    logMessage(QString("Datos cargados exitosamente: %1 estaciones, %2 rutas.")
-        .arg(graph.getStationCount())
-        .arg(bst.count()), "green");
+    logBST(QString("Datos cargados: %1 estaciones.").arg(bst.count()), "green");
+    logGraph(QString("Datos cargados: %1 estaciones.").arg(graph.getStationCount()), "green");
     
     statusBar()->showMessage("Datos cargados correctamente", 3000);
     
     showInfoMessage("Carga Exitosa", 
-        QString("Datos cargados correctamente:\n\nEstaciones: %1\nRutas: %2")
-        .arg(graph.getStationCount())
-        .arg(bst.count()));
+        QString("Datos cargados correctamente:\n\nEstaciones: %1")
+        .arg(graph.getStationCount()));
 }
 
-// Slot: Save Data
-void MainWindow::onSaveDataClicked()
+// Menu Action: Guardar Datos
+void MainWindow::onActionGuardarDatos()
 {
     if (!dataLoaded)
     {
@@ -192,245 +695,20 @@ void MainWindow::onSaveDataClicked()
         return;
     }
     
-    logMessage("Guardando datos del sistema...", "blue");
-    
     bool stationsSaved = fileManager.saveStations("estaciones_guardadas.txt", bst);
     bool routesSaved = fileManager.saveRoutes("rutas_guardadas.txt", graph);
     
     if (stationsSaved && routesSaved)
     {
-        logMessage("Datos guardados exitosamente.", "green");
+        logBST("Datos guardados exitosamente.", "green");
+        logGraph("Datos guardados exitosamente.", "green");
         statusBar()->showMessage("Datos guardados correctamente", 3000);
         showInfoMessage("Guardado Exitoso", "Los datos se han guardado correctamente.");
     }
     else
     {
-        logMessage("Error al guardar algunos archivos.", "red");
         showErrorMessage("Error de Guardado", "No se pudieron guardar todos los archivos.");
     }
-}
-
-// Slot: Draw Graph
-void MainWindow::onDrawGraphClicked()
-{
-    if (!dataLoaded)
-    {
-        showInfoMessage("Informacion", "Debe cargar datos antes de dibujar.");
-        return;
-    }
-    
-    logMessage("Dibujando grafo en la vista...", "blue");
-    statusBar()->showMessage("Dibujando grafo...");
-    
-    visualizer->drawGraph();
-    
-    logMessage("Grafo dibujado correctamente.", "green");
-    statusBar()->showMessage("Grafo visualizado", 3000);
-}
-
-// Slot: Shortest Path (Dijkstra)
-void MainWindow::onShortestPathClicked()
-{
-    if (!dataLoaded)
-    {
-        showInfoMessage("Informacion", "Debe cargar datos primero.");
-        return;
-    }
-    
-    if (graph.getStationCount() < 2)
-    {
-        showInfoMessage("Informacion", "Se necesitan al menos 2 estaciones.");
-        return;
-    }
-    
-    // Ask for start station
-    bool ok;
-    int startId = QInputDialog::getInt(this, "Ruta Mas Corta",
-        "Ingrese el ID de la estacion de origen:", 1, 1, 100, 1, &ok);
-    
-    if (!ok || !graph.containsStation(startId))
-    {
-        showInfoMessage("Informacion", "ID de estacion invalido.");
-        return;
-    }
-    
-    // Ask for destination station
-    int destId = QInputDialog::getInt(this, "Ruta Mas Corta",
-        "Ingrese el ID de la estacion de destino:", 1, 1, 100, 1, &ok);
-    
-    if (!ok || !graph.containsStation(destId))
-    {
-        showInfoMessage("Informacion", "ID de estacion invalido.");
-        return;
-    }
-    
-    logMessage(QString("Calculando ruta mas corta de %1 a %2...").arg(startId).arg(destId), "blue");
-    statusBar()->showMessage("Calculando ruta...");
-    
-    // Calculate shortest path using Dijkstra
-    QHash<int, double> distances = graph.dijkstra(startId);
-    
-    if (distances[destId] >= std::numeric_limits<double>::infinity())
-    {
-        logMessage("No existe ruta entre las estaciones seleccionadas.", "red");
-        showInfoMessage("Ruta No Encontrada", 
-            "No existe una ruta conectada entre las estaciones seleccionadas.");
-        return;
-    }
-    
-    // For visualization, use BFS to get actual path
-    QList<int> bfsPath = graph.bfs(startId);
-    QList<int> route;
-    
-    // Find path to destination in BFS result
-    int idx = bfsPath.indexOf(destId);
-    if (idx >= 0)
-    {
-        // Simplified: show start and end
-        route.append(startId);
-        route.append(destId);
-    }
-    
-    if (!route.isEmpty())
-    {
-        visualizer->drawOptimalRoute(route);
-        
-        logMessage(QString("Ruta calculada (distancia: %1): %2 -> %3")
-            .arg(distances[destId], 0, 'f', 1)
-            .arg(startId)
-            .arg(destId), "green");
-        
-        statusBar()->showMessage(QString("Ruta calculada - Distancia: %1").arg(distances[destId], 0, 'f', 1), 5000);
-        
-        showInfoMessage("Ruta Calculada",
-            QString("Ruta mas corta encontrada:\n\nOrigen: Estacion %1\nDestino: Estacion %2\nDistancia total: %3")
-            .arg(startId)
-            .arg(destId)
-            .arg(distances[destId], 0, 'f', 1));
-        
-        // Generate route report
-        reportGenerator.generateRouteReport("reporte_ruta_corta.txt", route, graph);
-        logMessage("Reporte de ruta generado: reporte_ruta_corta.txt", "blue");
-    }
-}
-
-// Slot: MST
-void MainWindow::onMSTClicked()
-{
-    if (!dataLoaded)
-    {
-        showInfoMessage("Informacion", "Debe cargar datos primero.");
-        return;
-    }
-    
-    logMessage("Calculando Arbol de Expansion Minima (MST)...", "blue");
-    statusBar()->showMessage("Calculando MST...");
-    
-    QList<QPair<int, int>> mstEdges = graph.kruskalMST();
-    
-    if (mstEdges.isEmpty())
-    {
-        logMessage("No se pudo calcular el MST.", "red");
-        showInfoMessage("Error", "No se pudo calcular el arbol de expansion minima.");
-        return;
-    }
-    
-    // Calculate total weight
-    double totalWeight = 0.0;
-    for (const auto& edge : mstEdges)
-    {
-        totalWeight += graph.getEdgeWeight(edge.first, edge.second);
-    }
-    
-    logMessage(QString("MST calculado: %1 aristas, peso total: %2")
-        .arg(mstEdges.size())
-        .arg(totalWeight, 0, 'f', 1), "green");
-    
-    statusBar()->showMessage(QString("MST calculado - Peso total: %1").arg(totalWeight, 0, 'f', 1), 5000);
-    
-    showInfoMessage("MST Calculado",
-        QString("Arbol de Expansion Minima calculado:\n\nAlgoritmo: Kruskal\nNumero de aristas: %1\nPeso total: %2")
-        .arg(mstEdges.size())
-        .arg(totalWeight, 0, 'f', 1));
-    
-    // Generate MST report
-    reportGenerator.generateMSTReport("reporte_mst.txt", graph);
-    logMessage("Reporte de MST generado: reporte_mst.txt", "blue");
-}
-
-// Slot: Traversals
-void MainWindow::onTraversalsClicked()
-{
-    if (!dataLoaded)
-    {
-        showInfoMessage("Informacion", "Debe cargar datos primero.");
-        return;
-    }
-    
-    logMessage("Generando recorridos del arbol BST...", "blue");
-    
-    bool success = reportGenerator.generateTraversalReport("reporte_recorridos.txt", bst);
-    
-    if (success)
-    {
-        logMessage("Recorridos generados: reporte_recorridos.txt", "green");
-        statusBar()->showMessage("Recorridos exportados correctamente", 3000);
-        showInfoMessage("Recorridos Generados", "Los recorridos del arbol BST han sido generados.");
-    }
-    else
-    {
-        logMessage("Error al generar recorridos.", "red");
-        showErrorMessage("Error", "No se pudo generar el archivo de recorridos.");
-    }
-}
-
-// Slot: Generate Reports
-void MainWindow::onGenerateReportsClicked()
-{
-    if (!dataLoaded)
-    {
-        showInfoMessage("Informacion", "Debe cargar datos primero.");
-        return;
-    }
-    
-    logMessage("Generando reportes del sistema...", "blue");
-    statusBar()->showMessage("Generando reportes...");
-    
-    // Generate all reports
-    bool statsReport = reportGenerator.generateSystemStats("reporte_estadisticas.txt", graph, bst);
-    bool mstReport = reportGenerator.generateMSTReport("reporte_mst.txt", graph);
-    bool connectivityReport = reportGenerator.generateConnectivityReport("reporte_conectividad.txt", graph);
-    bool traversalReport = reportGenerator.generateTraversalReport("reporte_recorridos.txt", bst);
-    
-    int successCount = (statsReport ? 1 : 0) + (mstReport ? 1 : 0) + 
-                       (connectivityReport ? 1 : 0) + (traversalReport ? 1 : 0);
-    
-    logMessage(QString("Reportes generados exitosamente (%1/4).").arg(successCount), "green");
-    statusBar()->showMessage("Reportes generados", 3000);
-    
-    showInfoMessage("Reportes Generados",
-        QString("Se han generado %1 reportes del sistema.").arg(successCount));
-}
-
-// Slot: Clear Graph
-void MainWindow::onClearGraphClicked()
-{
-    logMessage("Limpiando vista del grafo...", "blue");
-    visualizer->clearScene();
-    logMessage("Vista limpiada.", "green");
-    statusBar()->showMessage("Vista limpiada", 2000);
-}
-
-// Menu Action: Cargar Datos
-void MainWindow::onActionCargarDatos()
-{
-    onLoadDataClicked();
-}
-
-// Menu Action: Guardar Datos
-void MainWindow::onActionGuardarDatos()
-{
-    onSaveDataClicked();
 }
 
 // Menu Action: Salir
@@ -442,28 +720,31 @@ void MainWindow::onActionSalir()
     }
 }
 
-// Menu Action: Dibujar Grafo
-void MainWindow::onActionDibujarGrafo()
-{
-    onDrawGraphClicked();
-}
-
-// Menu Action: Mostrar Ruta Optima
-void MainWindow::onActionMostrarRutaOptima()
-{
-    onShortestPathClicked();
-}
-
-// Menu Action: Limpiar Vista
-void MainWindow::onActionLimpiarVista()
-{
-    onClearGraphClicked();
-}
-
 // Menu Action: Generar Reportes
 void MainWindow::onActionGenerarReportes()
 {
-    onGenerateReportsClicked();
+    if (!dataLoaded)
+    {
+        showInfoMessage("Informacion", "Debe cargar datos primero.");
+        return;
+    }
+    
+    logGraph("Generando reportes del sistema...", "blue");
+    statusBar()->showMessage("Generando reportes...");
+    
+    bool statsReport = reportGenerator.generateSystemStats("reporte_estadisticas.txt", graph, bst);
+    bool mstReport = reportGenerator.generateMSTReport("reporte_mst.txt", graph);
+    bool connectivityReport = reportGenerator.generateConnectivityReport("reporte_conectividad.txt", graph);
+    bool traversalReport = reportGenerator.generateTraversalReport("reporte_recorridos.txt", bst);
+    
+    int successCount = (statsReport ? 1 : 0) + (mstReport ? 1 : 0) + 
+                       (connectivityReport ? 1 : 0) + (traversalReport ? 1 : 0);
+    
+    logGraph(QString("Reportes generados exitosamente (%1/4).").arg(successCount), "green");
+    statusBar()->showMessage("Reportes generados", 3000);
+    
+    showInfoMessage("Reportes Generados",
+        QString("Se han generado %1 reportes del sistema.").arg(successCount));
 }
 
 // Menu Action: Ver Ultimo Reporte
@@ -471,14 +752,14 @@ void MainWindow::onActionVerUltimoReporte()
 {
     if (fileManager.fileExists("reporte_estadisticas.txt"))
     {
-        logMessage("Abriendo reporte_estadisticas.txt...", "blue");
+        logGraph("Abriendo reporte_estadisticas.txt...", "blue");
         QDesktopServices::openUrl(QUrl::fromLocalFile("reporte_estadisticas.txt"));
     }
     else
     {
         showInfoMessage("Informacion", 
-            "No se encontro ningun reporte.\n"
-            "Genere reportes primero usando el boton 'Generar Reportes'.");
+            "No se encontró ningun reporte.\n"
+            "Genere reportes primero.");
     }
 }
 
@@ -491,7 +772,7 @@ void MainWindow::onActionAcercaDe()
         "<p><b>Proyecto:</b> Estructura de Datos - Proyecto #2</p>"
         "<hr>"
         "<p><b>Descripcion:</b></p>"
-        "<p>Sistema de simulacion de transporte urbano que utiliza "
+        "<p>Sistema de gestion de transporte urbano que utiliza "
         "arboles binarios de busqueda y grafos ponderados.</p>"
         "<hr>"
         "<p><b>Algoritmos Implementados:</b></p>"
@@ -506,5 +787,39 @@ void MainWindow::onActionAcercaDe()
         "<hr>"
         "<p><b>Tecnologias:</b> C++14, Qt 6.9.2</p>"
         "<p><b>Desarrollado con:</b> Visual Studio 2022</p>");
+}
+
+// Setup signal/slot connections
+void MainWindow::setupConnections()
+{
+    // BST Tab connections
+    connect(ui.btnAddStation, &QPushButton::clicked, this, &MainWindow::onAddStationClicked);
+    connect(ui.btnRemoveStation, &QPushButton::clicked, this, &MainWindow::onRemoveStationClicked);
+    connect(ui.btnSearchStation, &QPushButton::clicked, this, &MainWindow::onSearchStationClicked);
+    connect(ui.btnClearStation, &QPushButton::clicked, this, &MainWindow::onClearStationClicked);
+    connect(ui.btnInOrder, &QPushButton::clicked, this, &MainWindow::onInOrderClicked);
+    connect(ui.btnPreOrder, &QPushButton::clicked, this, &MainWindow::onPreOrderClicked);
+    connect(ui.btnPostOrder, &QPushButton::clicked, this, &MainWindow::onPostOrderClicked);
+    connect(ui.btnExportTraversals, &QPushButton::clicked, this, &MainWindow::onExportTraversalsClicked);
+    
+    // Graph Tab connections
+    connect(ui.btnAddRoute, &QPushButton::clicked, this, &MainWindow::onAddRouteClicked);
+    connect(ui.btnRemoveRoute, &QPushButton::clicked, this, &MainWindow::onRemoveRouteClicked);
+    connect(ui.btnShortestPath, &QPushButton::clicked, this, &MainWindow::onShortestPathClicked);
+    connect(ui.btnFloyd, &QPushButton::clicked, this, &MainWindow::onFloydClicked);
+    connect(ui.btnPrimMST, &QPushButton::clicked, this, &MainWindow::onPrimMSTClicked);
+    connect(ui.btnKruskalMST, &QPushButton::clicked, this, &MainWindow::onKruskalMSTClicked);
+    connect(ui.btnBFS, &QPushButton::clicked, this, &MainWindow::onBFSClicked);
+    connect(ui.btnDFS, &QPushButton::clicked, this, &MainWindow::onDFSClicked);
+    connect(ui.btnDrawGraph, &QPushButton::clicked, this, &MainWindow::onDrawGraphClicked);
+    connect(ui.btnClearGraph, &QPushButton::clicked, this, &MainWindow::onClearGraphClicked);
+    
+    // Menu action connections
+    connect(ui.actionCargarDatos, &QAction::triggered, this, &MainWindow::onActionCargarDatos);
+    connect(ui.actionGuardarDatos, &QAction::triggered, this, &MainWindow::onActionGuardarDatos);
+    connect(ui.actionSalir, &QAction::triggered, this, &MainWindow::onActionSalir);
+    connect(ui.actionGenerarReportes, &QAction::triggered, this, &MainWindow::onActionGenerarReportes);
+    connect(ui.actionVerUltimoReporte, &QAction::triggered, this, &MainWindow::onActionVerUltimoReporte);
+    connect(ui.actionAcercaDe, &QAction::triggered, this, &MainWindow::onActionAcercaDe);
 }
 

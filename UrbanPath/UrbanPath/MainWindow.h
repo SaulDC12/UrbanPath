@@ -22,23 +22,32 @@ public:
     ~MainWindow();
 
 private slots:
-    // Button slots
-    void onLoadDataClicked();
-    void onSaveDataClicked();
-    void onDrawGraphClicked();
+    // BST Tab slots
+    void onAddStationClicked();
+    void onRemoveStationClicked();
+    void onSearchStationClicked();
+    void onClearStationClicked();
+    void onInOrderClicked();
+    void onPreOrderClicked();
+    void onPostOrderClicked();
+    void onExportTraversalsClicked();
+    
+    // Graph Tab slots
+    void onAddRouteClicked();
+    void onRemoveRouteClicked();
     void onShortestPathClicked();
-    void onMSTClicked();
-    void onTraversalsClicked();
-    void onGenerateReportsClicked();
+    void onFloydClicked();
+    void onPrimMSTClicked();
+    void onKruskalMSTClicked();
+    void onBFSClicked();
+    void onDFSClicked();
+    void onDrawGraphClicked();
     void onClearGraphClicked();
     
     // Menu action slots
     void onActionCargarDatos();
     void onActionGuardarDatos();
     void onActionSalir();
-    void onActionDibujarGrafo();
-    void onActionMostrarRutaOptima();
-    void onActionLimpiarVista();
     void onActionGenerarReportes();
     void onActionVerUltimoReporte();
     void onActionAcercaDe();
@@ -57,11 +66,13 @@ private:
     // Helper methods
     void setupConnections();
     void loadBackgroundImage();
-    void updateStatistics();
-    void logMessage(const QString& message, const QString& color = "black");
+    void updateComboBoxes();
+    void logBST(const QString& message, const QString& color = "black");
+    void logGraph(const QString& message, const QString& color = "black");
     void showInfoMessage(const QString& title, const QString& message);
     void showErrorMessage(const QString& title, const QString& message);
     bool confirmAction(const QString& title, const QString& message);
+    void applyDarkTheme();
     
     // Data loaded flag
     bool dataLoaded;

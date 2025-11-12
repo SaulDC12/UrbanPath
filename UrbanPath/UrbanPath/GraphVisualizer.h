@@ -67,7 +67,7 @@ public:
     // Utility
     void fitInView();
     void resetZoom();
-    
+
 private:
     // Helper methods for drawing
     void drawStationNode(const Station& station);

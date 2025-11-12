@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>800</height>
+    <width>1400</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,193 +16,379 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QHBoxLayout" name="mainLayout">
-      <item>
-       <widget class="QGroupBox" name="controlPanel">
-        <property name="title">
-         <string>Panel de Control</string>
-        </property>
-        <property name="minimumWidth">
-         <number>250</number>
-        </property>
-        <property name="maximumWidth">
-         <number>300</number>
-        </property>
-        <layout class="QVBoxLayout" name="controlLayout">
-         <item>
-          <widget class="QLabel" name="lblTitle">
-           <property name="text">
-            <string>&lt;b&gt;Operaciones del Sistema&lt;/b&gt;</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="Line" name="line">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnLoadData">
-           <property name="text">
-            <string>📂 Cargar Datos</string>
-           </property>
-           <property name="minimumHeight">
-            <number>35</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnSaveData">
-           <property name="text">
-            <string>💾 Guardar Datos</string>
-           </property>
-           <property name="minimumHeight">
-            <number>35</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="Line" name="line_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnDrawGraph">
-           <property name="text">
-            <string>🗺️ Dibujar Grafo</string>
-           </property>
-           <property name="minimumHeight">
-            <number>35</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnShortestPath">
-           <property name="text">
-            <string>🎯 Ruta Más Corta (Dijkstra)</string>
-           </property>
-           <property name="minimumHeight">
-            <number>35</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnMST">
-           <property name="text">
-            <string>🌳 MST (Kruskal/Prim)</string>
-           </property>
-           <property name="minimumHeight">
-            <number>35</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnTraversals">
-           <property name="text">
-            <string>📊 Recorridos del Árbol</string>
-           </property>
-           <property name="minimumHeight">
-            <number>35</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="Line" name="line_3">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnGenerateReports">
-           <property name="text">
-            <string>📄 Generar Reportes</string>
-           </property>
-           <property name="minimumHeight">
-            <number>35</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btnClearGraph">
-           <property name="text">
-            <string>🧹 Limpiar Vista</string>
-           </property>
-           <property name="minimumHeight">
-            <number>35</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QLabel" name="lblStats">
-           <property name="text">
-            <string>&lt;i&gt;Estadísticas:&lt;/i&gt;&lt;br&gt;Estaciones: 0&lt;br&gt;Rutas: 0</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <widget class="QGraphicsView" name="graphicsView">
-        <property name="renderHints">
-         <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform|QPainter::TextAntialiasing</set>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="logPanel">
-      <property name="title">
-       <string>Registro de Eventos</string>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
       </property>
-      <property name="minimumHeight">
-       <number>150</number>
-      </property>
-      <property name="maximumHeight">
-       <number>200</number>
-      </property>
-      <layout class="QVBoxLayout" name="logLayout">
-       <item>
-        <widget class="QTextEdit" name="logConsole">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-         <property name="html">
-          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+      <widget class="QWidget" name="tabBST">
+       <attribute name="title">
+        <string>Gestion de Estaciones (BST)</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QGroupBox" name="groupBoxStationManagement">
+            <property name="title">
+             <string>Gestion de Estaciones</string>
+            </property>
+            <layout class="QFormLayout" name="formLayout">
+             <item row="0" column="0">
+              <widget class="QLabel" name="lblStationID">
+               <property name="text">
+                <string>ID de Estacion:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="txtStationID">
+               <property name="placeholderText">
+                <string>ID de estacion</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="lblStationName">
+               <property name="text">
+                <string>Nombre:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="txtStationName">
+               <property name="placeholderText">
+                <string>Nombre de estacion</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="lblStationX">
+               <property name="text">
+                <string>Coordenada X:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="txtStationX">
+               <property name="placeholderText">
+                <string>Coordenada X</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="lblStationY">
+               <property name="text">
+                <string>Coordenada Y:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="txtStationY">
+               <property name="placeholderText">
+                <string>Coordenada Y</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0" colspan="2">
+              <layout class="QHBoxLayout" name="horizontalLayout_2">
+               <item>
+                <widget class="QPushButton" name="btnAddStation">
+                 <property name="text">
+                  <string>Insertar Estacion</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnRemoveStation">
+                 <property name="text">
+                  <string>Eliminar Estacion</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="5" column="0" colspan="2">
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <item>
+                <widget class="QPushButton" name="btnSearchStation">
+                 <property name="text">
+                  <string>Buscar Estacion</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnClearStation">
+                 <property name="text">
+                  <string>Limpiar Campos</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBoxTraversals">
+            <property name="title">
+             <string>Recorridos del Arbol</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QPushButton" name="btnInOrder">
+               <property name="text">
+                <string>In-Order (Ascendente)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnPreOrder">
+               <property name="text">
+                <string>Pre-Order</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnPostOrder">
+               <property name="text">
+                <string>Post-Order</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btnExportTraversals">
+               <property name="text">
+                <string>Exportar Recorridos</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QTextEdit" name="txtBSTOutput">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="html">
+           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt; font-weight:600; color:#0000ff;&quot;&gt;=== Sistema UrbanPath Iniciado ===&lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Listo para cargar datos y operar.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt; font-weight:600; color:#0000ff;&quot;&gt;=== Gestion de Estaciones (BST) ===&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Listo para gestionar estaciones.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabGraph">
+       <attribute name="title">
+        <string>Red de Transporte (Grafo)</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+             <widget class="QGroupBox" name="groupBoxRouteManagement">
+              <property name="title">
+               <string>Gestion de Rutas</string>
+              </property>
+              <property name="minimumWidth">
+               <number>300</number>
+              </property>
+              <property name="maximumWidth">
+               <number>350</number>
+              </property>
+              <layout class="QFormLayout" name="formLayout_2">
+               <item row="0" column="0">
+                <widget class="QLabel" name="lblOrigin">
+                 <property name="text">
+                  <string>Estacion Origen:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QComboBox" name="comboOrigin"/>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="lblDestination">
+                 <property name="text">
+                  <string>Estacion Destino:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QComboBox" name="comboDestination"/>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="lblWeight">
+                 <property name="text">
+                  <string>Peso/Distancia:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QDoubleSpinBox" name="spinWeight">
+                 <property name="maximum">
+                  <double>9999.990000000000464</double>
+                 </property>
+                 <property name="value">
+                  <double>10.000000000000000</double>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0" colspan="2">
+                <layout class="QHBoxLayout" name="horizontalLayout_5">
+                 <item>
+                  <widget class="QPushButton" name="btnAddRoute">
+                   <property name="text">
+                    <string>Agregar Ruta</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnRemoveRoute">
+                   <property name="text">
+                    <string>Eliminar Ruta</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBoxAlgorithms">
+              <property name="title">
+               <string>Algoritmos de Ruta</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_6">
+               <item>
+                <widget class="QPushButton" name="btnShortestPath">
+                 <property name="text">
+                  <string>Ruta mas corta (Dijkstra)</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnFloyd">
+                 <property name="text">
+                  <string>Floyd-Warshall</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnPrimMST">
+                 <property name="text">
+                  <string>MST (Prim)</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnKruskalMST">
+                 <property name="text">
+                  <string>MST (Kruskal)</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnBFS">
+                 <property name="text">
+                  <string>BFS</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnDFS">
+                 <property name="text">
+                  <string>DFS</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnDrawGraph">
+                 <property name="text">
+                  <string>Dibujar Grafo</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnClearGraph">
+                 <property name="text">
+                  <string>Limpiar Vista</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_7">
+            <item>
+             <widget class="QGraphicsView" name="graphicsViewGraph">
+              <property name="renderHints">
+               <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform|QPainter::TextAntialiasing</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QTextEdit" name="txtGraphOutput">
+              <property name="maximumHeight">
+               <number>150</number>
+              </property>
+              <property name="readOnly">
+               <bool>true</bool>
+              </property>
+              <property name="html">
+               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt; font-weight:600; color:#0000ff;&quot;&gt;=== Red de Transporte (Grafo) ===&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Listo para gestionar rutas.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -212,7 +398,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1200</width>
+     <width>1400</width>
      <height>21</height>
     </rect>
    </property>
@@ -224,14 +410,6 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionGuardarDatos"/>
     <addaction name="separator"/>
     <addaction name="actionSalir"/>
-   </widget>
-   <widget class="QMenu" name="menuVer">
-    <property name="title">
-     <string>Ver</string>
-    </property>
-    <addaction name="actionDibujarGrafo"/>
-    <addaction name="actionMostrarRutaOptima"/>
-    <addaction name="actionLimpiarVista"/>
    </widget>
    <widget class="QMenu" name="menuReportes">
     <property name="title">
@@ -247,7 +425,6 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionAcercaDe"/>
    </widget>
    <addaction name="menuArchivo"/>
-   <addaction name="menuVer"/>
    <addaction name="menuReportes"/>
    <addaction name="menuAyuda"/>
   </widget>
@@ -276,30 +453,6 @@ p, li { white-space: pre-wrap; }
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionDibujarGrafo">
-   <property name="text">
-    <string>Dibujar Grafo</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+D</string>
-   </property>
-  </action>
-  <action name="actionMostrarRutaOptima">
-   <property name="text">
-    <string>Mostrar Ruta Óptima</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+R</string>
-   </property>
-  </action>
-  <action name="actionLimpiarVista">
-   <property name="text">
-    <string>Limpiar Vista</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+L</string>
-   </property>
-  </action>
   <action name="actionGenerarReportes">
    <property name="text">
     <string>Generar Reportes...</string>
@@ -310,7 +463,7 @@ p, li { white-space: pre-wrap; }
   </action>
   <action name="actionVerUltimoReporte">
    <property name="text">
-    <string>Ver Último Reporte</string>
+    <string>Ver Ultimo Reporte</string>
    </property>
   </action>
   <action name="actionAcercaDe">
