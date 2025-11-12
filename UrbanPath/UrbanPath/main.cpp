@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "Station.h"
 #include "StationBST.h"
+#include "DisjointSet.h"
 #include <QApplication>
 #include <QDebug>
 
@@ -170,6 +171,88 @@ void testStationBST()
     qDebug() << "\n=== PRUEBA DE STATIONBST COMPLETADA ===\n";
 }
 
+// Test function for DisjointSet class
+void testDisjointSet()
+{
+    qDebug() << "\n=== PRUEBA DE DISJOINT SET ===\n";
+    
+    // Create DisjointSet with 7 elements
+    DisjointSet ds(7);
+    
+    qDebug() << "Test 1: Estado inicial (7 conjuntos independientes)";
+    ds.printSets();
+    
+    // Test 2: Union operations
+    qDebug() << "\nTest 2: Realizando operaciones de union...";
+    
+    qDebug() << "\nUniendo 1 y 2...";
+    ds.unionSets(1, 2);
+    ds.printSets();
+    
+    qDebug() << "\nUniendo 2 y 3...";
+    ds.unionSets(2, 3);
+    ds.printSets();
+    
+    qDebug() << "\nUniendo 4 y 5...";
+    ds.unionSets(4, 5);
+    ds.printSets();
+    
+    // Test 3: Connectivity checks
+    qDebug() << "\nTest 3: Verificando conectividad...";
+    qDebug() << "1 y 3 estan conectados?" << (ds.connected(1, 3) ? "Si" : "No");
+    qDebug() << "3 y 4 estan conectados?" << (ds.connected(3, 4) ? "Si" : "No");
+    qDebug() << "1 y 7 estan conectados?" << (ds.connected(1, 7) ? "Si" : "No");
+    
+    // Test 4: More unions
+    qDebug() << "\nTest 4: Uniendo mas conjuntos...";
+    qDebug() << "\nUniendo 3 y 4 (conecta {1,2,3} con {4,5})...";
+    ds.unionSets(3, 4);
+    ds.printSets();
+    
+    qDebug() << "\nDespues de unir 3 y 4:";
+    qDebug() << "1 y 5 estan conectados?" << (ds.connected(1, 5) ? "Si" : "No");
+    qDebug() << "2 y 4 estan conectados?" << (ds.connected(2, 4) ? "Si" : "No");
+    
+    // Test 5: Union remaining elements
+    qDebug() << "\nTest 5: Uniendo elementos restantes...";
+    qDebug() << "\nUniendo 6 y 7...";
+    ds.unionSets(6, 7);
+    ds.printSets();
+    
+    qDebug() << "\nUniendo 5 y 6 (conecta todo excepto el conjunto grande)...";
+    ds.unionSets(5, 6);
+    ds.printSets();
+    
+    // Test 6: Final union - all in one set
+    qDebug() << "\nTest 6: Union final...";
+    qDebug() << "\nUniendo 1 y 7 (todos en un solo conjunto)...";
+    ds.unionSets(1, 7);
+    ds.printSets();
+    
+    qDebug() << "\nTodos conectados?";
+    qDebug() << "1 y 7 estan conectados?" << (ds.connected(1, 7) ? "Si" : "No");
+    
+    // Test 7: Reset
+    qDebug() << "\nTest 7: Reiniciando conjuntos...";
+    ds.reset();
+    ds.printSets();
+    
+    qDebug() << "\nDespues de reiniciar:";
+    qDebug() << "1 y 2 estan conectados?" << (ds.connected(1, 2) ? "Si" : "No (correcto)");
+    
+    // Test 8: Edge cases
+    qDebug() << "\nTest 8: Casos especiales...";
+    qDebug() << "\nIntentando unir el mismo elemento consigo mismo (1 y 1)...";
+    ds.unionSets(1, 1);
+    ds.printSets();
+    
+    qDebug() << "\nIntentando acceder a elemento fuera de rango (nodo 10)...";
+    int result = ds.find(10);
+    qDebug() << "Resultado:" << result << "(deberia ser -1)";
+    
+    qDebug() << "\n=== PRUEBA DE DISJOINT SET COMPLETADA ===\n";
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -179,6 +262,9 @@ int main(int argc, char *argv[])
     
     // Run StationBST tests
     testStationBST();
+    
+    // Run DisjointSet tests
+    testDisjointSet();
     
     MainWindow window;
     window.show();
