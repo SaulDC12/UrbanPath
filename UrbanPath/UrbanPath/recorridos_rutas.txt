@@ -1,0 +1,26 @@
+=== RECORRIDO IN-ORDER (Izquierda, Raiz, Derecha) ===
+Station[ID=2, Name=Estacion Oeste, X=50, Y=100]
+Station[ID=3, Name=Estacion Norte, X=150, Y=50]
+Station[ID=4, Name=Estacion Este, X=200, Y=100]
+Station[ID=5, Name=Estacion Central, X=100, Y=100]
+Station[ID=6, Name=Estacion Plaza, X=125, Y=75]
+Station[ID=7, Name=Estacion Sur, X=150, Y=150]
+Station[ID=8, Name=Estacion Terminal, X=175, Y=125]
+
+=== RECORRIDO PRE-ORDER (Raiz, Izquierda, Derecha) ===
+Station[ID=5, Name=Estacion Central, X=100, Y=100]
+Station[ID=3, Name=Estacion Norte, X=150, Y=50]
+Station[ID=2, Name=Estacion Oeste, X=50, Y=100]
+Station[ID=4, Name=Estacion Este, X=200, Y=100]
+Station[ID=7, Name=Estacion Sur, X=150, Y=150]
+Station[ID=6, Name=Estacion Plaza, X=125, Y=75]
+Station[ID=8, Name=Estacion Terminal, X=175, Y=125]
+
+=== RECORRIDO POST-ORDER (Izquierda, Derecha, Raiz) ===
+Station[ID=2, Name=Estacion Oeste, X=50, Y=100]
+Station[ID=4, Name=Estacion Este, X=200, Y=100]
+Station[ID=3, Name=Estacion Norte, X=150, Y=50]
+Station[ID=6, Name=Estacion Plaza, X=125, Y=75]
+Station[ID=8, Name=Estacion Terminal, X=175, Y=125]
+Station[ID=7, Name=Estacion Sur, X=150, Y=150]
+Station[ID=5, Name=Estacion Central, X=100, Y=100]
