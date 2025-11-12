@@ -18,6 +18,43 @@ MainWindow::MainWindow(QWidget *parent)
     // Initialize visualizer
     visualizer = new GraphVisualizer(scene, ui.graphicsViewGraph, &graph);
     
+    // Install click event handler for map interaction
+    visualizer->installClickEvent();
+    
+    // Configure callback for map clicks
+    visualizer->setClickCallback([this](double x, double y) {
+        // Generate new station ID (next available)
+        int newId = graph.getStationCount() + 1;
+        QString name = QString("Estacion %1").arg(newId);
+        
+        // Create station at clicked coordinates
+        Station station(newId, name, x, y);
+        bst.insert(station);
+        graph.addStation(station);
+        
+        // Redraw the graph to show new station
+        visualizer->drawGraph();
+        
+        // Update combo boxes
+        updateComboBoxes();
+        
+        // Log the action
+        QString log = QString("<span style='color:green'>[%1] Estacion agregada con clic: [%2] %3 (X:%4, Y:%5)</span>")
+            .arg(QDateTime::currentDateTime().toString("HH:mm:ss"))
+            .arg(newId)
+            .arg(name)
+            .arg(x, 0, 'f', 1)
+            .arg(y, 0, 'f', 1);
+        
+        ui.txtGraphOutput->append(log);
+        logBST(QString("Estacion %1 creada desde mapa").arg(newId), "green");
+        
+        statusBar()->showMessage(QString("Estacion %1 agregada en mapa (X:%2, Y:%3)")
+            .arg(newId).arg(x, 0, 'f', 1).arg(y, 0, 'f', 1), 3000);
+        
+        qDebug() << "Estacion agregada con clic:" << newId << name << "en" << x << "," << y;
+    });
+    
     // Setup connections
     setupConnections();
     
@@ -26,8 +63,9 @@ MainWindow::MainWindow(QWidget *parent)
     logBST("Listo para gestionar estaciones.");
     logGraph("=== Red de Transporte Lista ===", "blue");
     logGraph("Listo para gestionar rutas.");
+    logGraph("Haz clic en el mapa para agregar estaciones!", "green");
     
-    statusBar()->showMessage("Sistema UrbanPath listo para operar");
+    statusBar()->showMessage("Sistema UrbanPath listo para operar - Clic en mapa para agregar estaciones");
     
     // Try to load background image
     loadBackgroundImage();

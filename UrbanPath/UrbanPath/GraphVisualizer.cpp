@@ -4,7 +4,7 @@
 
 // Constructor
 GraphVisualizer::GraphVisualizer(QGraphicsScene* scene, QGraphicsView* view, Graph* graph)
-    : scene(scene), view(view), graph(graph), backgroundItem(nullptr)
+    : QObject(nullptr), scene(scene), view(view), graph(graph), backgroundItem(nullptr)
 {
     // Initialize default visual settings
     nodeRadius = 8.0;
@@ -34,6 +34,55 @@ GraphVisualizer::~GraphVisualizer()
     nodeItems.clear();
     edgeItems.clear();
     weightLabels.clear();
+}
+
+// Set click callback function
+void GraphVisualizer::setClickCallback(function<void(double, double)> callback)
+{
+    clickCallback = callback;
+    qDebug() << "Callback de clic en mapa configurado.";
+}
+
+// Install event filter to capture mouse clicks
+void GraphVisualizer::installClickEvent()
+{
+    if (view && view->viewport())
+    {
+        view->viewport()->installEventFilter(this);
+        qDebug() << "Event filter instalado en el viewport.";
+    }
+    else
+    {
+        qDebug() << "Error: No se pudo instalar event filter.";
+    }
+}
+
+// Event filter to capture mouse clicks on the map
+bool GraphVisualizer::eventFilter(QObject* obj, QEvent* event)
+{
+    if (event->type() == QEvent::MouseButtonPress && obj == view->viewport())
+    {
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+        
+        // Only handle left clicks
+        if (mouseEvent->button() == Qt::LeftButton)
+        {
+            // Convert viewport coordinates to scene coordinates
+            QPointF scenePos = view->mapToScene(mouseEvent->pos());
+            
+            qDebug() << "Clic en mapa detectado en:" << scenePos;
+            
+            // Call the callback function if set
+            if (clickCallback)
+            {
+                clickCallback(scenePos.x(), scenePos.y());
+            }
+            
+            return true;  // Event handled
+        }
+    }
+    
+    return QObject::eventFilter(obj, event);  // Pass event to parent
 }
 
 // Load background image

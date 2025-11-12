@@ -13,10 +13,14 @@
 #include <QBrush>
 #include <QMap>
 #include <QList>
+#include <QObject>
+#include <QEvent>
+#include <QMouseEvent>
+#include <functional>
 
 using namespace std;
 
-class GraphVisualizer
+class GraphVisualizer : public QObject
 {
 private:
     QGraphicsScene* scene;
@@ -37,6 +41,9 @@ private:
     QColor optimalEdgeColor;
     double normalEdgeWidth;
     double optimalEdgeWidth;
+    
+    // Callback function for map clicks
+    function<void(double, double)> clickCallback;
     
 public:
     // Constructor
@@ -67,6 +74,14 @@ public:
     // Utility
     void fitInView();
     void resetZoom();
+    
+    // Map click callback setup
+    void setClickCallback(function<void(double, double)> callback);
+    void installClickEvent();
+
+protected:
+    // Event filter for capturing mouse clicks
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
     // Helper methods for drawing

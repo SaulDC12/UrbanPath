@@ -2,7 +2,7 @@
   REPORTE DE RUTA
 ========================================
 Fecha: 2025-11-12
-Hora: 03:42:24
+Hora: 04:40:11
 ========================================
 
 INFORMACION DE LA RUTA
@@ -10,11 +10,11 @@ INFORMACION DE LA RUTA
 Numero de estaciones en la ruta: 2
 
 Recorrido:
-  1. Estacion 123213: wsew (X: 12.0, Y: 32.0)
-     -> Distancia al siguiente: 10.0
-  2. Estacion 12312: asdfa (X: 423.0, Y: 123.0)
+  1. Estacion 8: Estacion 8 (X: -181.7, Y: -75.1)
+     -> No hay conexion directa
+  2. Estacion 8: Estacion 8 (X: -181.7, Y: -75.1)
 ----------------------------------------
-Distancia total de la ruta: 10.0
+Distancia total de la ruta: 0.0
 
 ========================================
   Fin del reporte
