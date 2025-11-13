@@ -1,6 +1,9 @@
 #include "Graph.h"
 #include <algorithm>
 #include <limits>
+#include <QFile>
+#include <QTextStream>
+#include <QIODevice>
 
 const double INF = std::numeric_limits<double>::infinity();
 
@@ -835,4 +838,251 @@ QSet<int> Graph::getClosedStations() const
 QList<QPair<int, int>> Graph::getClosedRoutes() const
 {
     return closedRoutes;
+}
+
+// ==================== Accident Management ====================
+
+// Apply an accident to a route (increase its weight)
+bool Graph::applyAccident(int originId, int destId, double increment)
+{
+    // Validate stations exist
+    if (!stations.contains(originId) || !stations.contains(destId))
+    {
+        qDebug() << "Error: No se puede aplicar accidente. Estaciones" << originId 
+                 << "o" << destId << "no existen.";
+        return false;
+    }
+    
+    // Check if route exists
+    if (!hasEdge(originId, destId))
+    {
+        qDebug() << "Error: No existe ruta entre" << originId << "y" << destId;
+        return false;
+    }
+    
+    // Create route keys (both directions for undirected graphs)
+    QPair<int, int> routeKey1(originId, destId);
+    QPair<int, int> routeKey2(destId, originId);
+    
+    // Check if accident already applied to avoid double increment
+    if (affectedRoutes.contains(routeKey1) || affectedRoutes.contains(routeKey2))
+    {
+        qDebug() << "Advertencia: Ruta" << originId << "<->" << destId 
+                 << "ya tiene un accidente aplicado. Se omite.";
+        return false;
+    }
+    
+    // Get current weight
+    double currentWeight = getEdgeWeight(originId, destId);
+    
+    // Store original weight before modification (for restoration)
+    if (!originalWeights.contains(routeKey1))
+    {
+        originalWeights[routeKey1] = currentWeight;
+        if (!directed)
+        {
+            originalWeights[routeKey2] = currentWeight;
+        }
+    }
+    
+    // Calculate new weight (assuming increment is percentage)
+    double newWeight = currentWeight + (currentWeight * (increment / 100.0));
+    
+    // Update weight in adjacency list (origin -> dest)
+    if (adjList.contains(originId))
+    {
+        QList<QPair<int, double>>& neighbors = adjList[originId];
+        for (int i = 0; i < neighbors.size(); i++)
+        {
+            if (neighbors[i].first == destId)
+            {
+                neighbors[i].second = newWeight;
+                break;
+            }
+        }
+    }
+    
+    // Update weight in reverse direction if undirected graph
+    if (!directed && adjList.contains(destId))
+    {
+        QList<QPair<int, double>>& neighbors = adjList[destId];
+        for (int i = 0; i < neighbors.size(); i++)
+        {
+            if (neighbors[i].first == originId)
+            {
+                neighbors[i].second = newWeight;
+                break;
+            }
+        }
+    }
+    
+    // Mark route as affected
+    affectedRoutes.insert(routeKey1);
+    if (!directed)
+    {
+        affectedRoutes.insert(routeKey2);
+    }
+    
+    qDebug() << "[OK] Accidente aplicado: Ruta (" << originId << "->" << destId 
+             << ") aumentó de" << QString::number(currentWeight, 'f', 1) 
+             << "a" << QString::number(newWeight, 'f', 1) 
+             << "(+" << QString::number(increment, 'f', 0) << "%)";
+    
+    return true;
+}
+
+// Load accidents from file
+bool Graph::loadAccidents(const QString& filename)
+{
+    QFile file(filename);
+    
+    if (!file.exists())
+    {
+        qDebug() << "[INFO] Archivo de accidentes no encontrado:" << filename;
+        return false;
+    }
+    
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        qDebug() << "Error: No se pudo abrir archivo de accidentes:" << filename;
+        return false;
+    }
+    
+    QTextStream in(&file);
+    int lineNumber = 0;
+    int accidentsApplied = 0;
+    
+    qDebug() << "[INFO] Aplicando accidentes desde" << filename;
+    
+    while (!in.atEnd())
+    {
+        QString line = in.readLine().trimmed();
+        lineNumber++;
+        
+        // Skip empty lines and comments
+        if (line.isEmpty() || line.startsWith("#") || line.startsWith("//"))
+        {
+            continue;
+        }
+        
+        // Parse line: origin,destination,increment
+        QStringList parts = line.split(',');
+        
+        if (parts.size() != 3)
+        {
+            qDebug() << "Advertencia: Linea" << lineNumber 
+                     << "tiene formato invalido (esperado: origen,destino,incremento):" << line;
+            continue;
+        }
+        
+        bool ok1, ok2, ok3;
+        int origin = parts[0].trimmed().toInt(&ok1);
+        int dest = parts[1].trimmed().toInt(&ok2);
+        double increment = parts[2].trimmed().toDouble(&ok3);
+        
+        if (!ok1 || !ok2 || !ok3)
+        {
+            qDebug() << "Advertencia: Linea" << lineNumber 
+                     << "contiene valores no numericos:" << line;
+            continue;
+        }
+        
+        // Apply accident
+        if (applyAccident(origin, dest, increment))
+        {
+            accidentsApplied++;
+        }
+    }
+    
+    file.close();
+    
+    qDebug() << "[INFO] Total de accidentes aplicados:" << accidentsApplied;
+    
+    return accidentsApplied > 0;
+}
+
+// Clear all accidents and restore original weights
+void Graph::clearAccidents()
+{
+    if (affectedRoutes.isEmpty())
+    {
+        qDebug() << "[INFO] No hay accidentes activos para limpiar.";
+        return;
+    }
+    
+    int restoredCount = 0;
+    
+    // Restore original weights
+    for (const auto& routeKey : affectedRoutes)
+    {
+        if (originalWeights.contains(routeKey))
+        {
+            int origin = routeKey.first;
+            int dest = routeKey.second;
+            double originalWeight = originalWeights[routeKey];
+            
+            // Restore weight in adjacency list
+            if (adjList.contains(origin))
+            {
+                QList<QPair<int, double>>& neighbors = adjList[origin];
+                for (int i = 0; i < neighbors.size(); i++)
+                {
+                    if (neighbors[i].first == dest)
+                    {
+                        neighbors[i].second = originalWeight;
+                        restoredCount++;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Clear tracking data
+    affectedRoutes.clear();
+    originalWeights.clear();
+    
+    qDebug() << "[INFO] Accidentes limpiados. Rutas restauradas:" << restoredCount;
+}
+
+// Restore original weights without clearing tracking (for re-application)
+bool Graph::restoreOriginalWeights()
+{
+    if (originalWeights.isEmpty())
+    {
+        qDebug() << "[INFO] No hay pesos originales guardados.";
+        return false;
+    }
+    
+    for (auto it = originalWeights.begin(); it != originalWeights.end(); ++it)
+    {
+        QPair<int, int> routeKey = it.key();
+        double originalWeight = it.value();
+        
+        int origin = routeKey.first;
+        int dest = routeKey.second;
+        
+        // Restore weight in adjacency list
+        if (adjList.contains(origin))
+        {
+            QList<QPair<int, double>>& neighbors = adjList[origin];
+            for (int i = 0; i < neighbors.size(); i++)
+            {
+                if (neighbors[i].first == dest)
+                {
+                    neighbors[i].second = originalWeight;
+                    break;
+                }
+            }
+        }
+    }
+    
+    qDebug() << "[INFO] Pesos originales restaurados.";
+    return true;
+}
+
+// Get list of routes affected by accidents
+QSet<QPair<int, int>> Graph::getAffectedRoutes() const
+{
+    return affectedRoutes;
 }

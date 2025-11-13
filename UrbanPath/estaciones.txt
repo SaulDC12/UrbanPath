@@ -1,8 +1,0 @@
-# Archivo de estaciones - UrbanPath
-# Formato: id, nombre, coordenada_x, coordenada_y
-
-1, Estacion Central, 100, 200
-2, Estacion Norte, 150, 100
-3, Estacion Sur, 150, 300
-4, Estacion Este, 250, 200
-5, Estacion Oeste, 50, 200

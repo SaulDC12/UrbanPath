@@ -38,6 +38,10 @@ private:
     QSet<int> closedStations;                        // Blocked stations
     QList<QPair<int, int>> closedRoutes;            // Blocked routes
     
+    // Accidents (increased weights on routes)
+    QSet<QPair<int, int>> affectedRoutes;            // Routes with accidents applied
+    QHash<QPair<int, int>, double> originalWeights;  // Original weights before accidents
+    
     // Helper methods for DFS
     void dfsHelper(int nodeId, QSet<int>& visited, QList<int>& result);
     
@@ -96,5 +100,12 @@ public:
     void clearClosures();
     QSet<int> getClosedStations() const;
     QList<QPair<int, int>> getClosedRoutes() const;
+    
+    // Accident management (increase route weights)
+    bool applyAccident(int originId, int destId, double increment);
+    bool loadAccidents(const QString& filename);
+    void clearAccidents();
+    bool restoreOriginalWeights();
+    QSet<QPair<int, int>> getAffectedRoutes() const;
 };
 

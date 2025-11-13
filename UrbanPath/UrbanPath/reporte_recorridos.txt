@@ -2,7 +2,7 @@
   REPORTE DE RECORRIDOS DEL ARBOL BST
 ========================================
 Fecha: 2025-11-13
-Hora: 05:19:04
+Hora: 15:04:10
 ========================================
 
 
@@ -10,10 +10,10 @@ RECORRIDO IN-ORDER (Izquierda - Raiz - Derecha)
 -----------------------------------------------
 Orden: Ascendente por ID de estacion
 
-  1. Estacion 1: Estacion 1 (X: 267.1, Y: 275.8)
-  2. Estacion 2: Estacion 2 (X: 456.7, Y: 220.2)
-  3. Estacion 3: Estacion 3 (X: 475.9, Y: 377.3)
-  4. Estacion 4: Estacion 4 (X: 348.5, Y: 379.2)
+  1. Estacion 1: Estacion 1 (X: 380.5, Y: 228.3)
+  2. Estacion 2: Estacion 2 (X: 554.6, Y: 220.2)
+  3. Estacion 3: Estacion 3 (X: 554.6, Y: 315.9)
+  4. Estacion 4: Estacion 4 (X: 401.3, Y: 332.1)
 
 Total de estaciones (InOrder): 4
 
@@ -21,10 +21,10 @@ RECORRIDO PRE-ORDER (Raiz - Izquierda - Derecha)
 ------------------------------------------------
 Orden: Visita raiz primero, luego subarboles
 
-  1. Estacion 1: Estacion 1 (X: 267.1, Y: 275.8)
-  2. Estacion 2: Estacion 2 (X: 456.7, Y: 220.2)
-  3. Estacion 3: Estacion 3 (X: 475.9, Y: 377.3)
-  4. Estacion 4: Estacion 4 (X: 348.5, Y: 379.2)
+  1. Estacion 1: Estacion 1 (X: 380.5, Y: 228.3)
+  2. Estacion 2: Estacion 2 (X: 554.6, Y: 220.2)
+  3. Estacion 3: Estacion 3 (X: 554.6, Y: 315.9)
+  4. Estacion 4: Estacion 4 (X: 401.3, Y: 332.1)
 
 Total de estaciones (PreOrder): 4
 
@@ -32,10 +32,10 @@ RECORRIDO POST-ORDER (Izquierda - Derecha - Raiz)
 -------------------------------------------------
 Orden: Visita subarboles primero, luego raiz
 
-  1. Estacion 4: Estacion 4 (X: 348.5, Y: 379.2)
-  2. Estacion 3: Estacion 3 (X: 475.9, Y: 377.3)
-  3. Estacion 2: Estacion 2 (X: 456.7, Y: 220.2)
-  4. Estacion 1: Estacion 1 (X: 267.1, Y: 275.8)
+  1. Estacion 4: Estacion 4 (X: 401.3, Y: 332.1)
+  2. Estacion 3: Estacion 3 (X: 554.6, Y: 315.9)
+  3. Estacion 2: Estacion 2 (X: 554.6, Y: 220.2)
+  4. Estacion 1: Estacion 1 (X: 380.5, Y: 228.3)
 
 Total de estaciones (PostOrder): 4
 

@@ -528,3 +528,97 @@ bool ReportGenerator::appendToReport(const QString& filename, const QString& sec
     qDebug() << "Seccion agregada al reporte:" << filename;
     return true;
 }
+
+// Generate accident report
+bool ReportGenerator::generateAccidentReport(const QString& filename, const Graph& graph)
+{
+    QFile file(filename);
+    
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        lastError = QString("No se pudo crear el archivo %1.").arg(filename);
+        qDebug() << "Error:" << lastError;
+        return false;
+    }
+    
+    QTextStream out(&file);
+    
+    // Write header
+    writeHeader(out, "REPORTE DE ACCIDENTES EN RUTAS");
+    
+    // Get affected routes
+    QSet<QPair<int, int>> affectedRoutes = graph.getAffectedRoutes();
+    
+    if (affectedRoutes.isEmpty())
+    {
+        out << "No hay accidentes activos en el sistema.\n";
+        writeFooter(out);
+        file.close();
+        qDebug() << "Reporte de accidentes generado (sin accidentes):" << filename;
+        return true;
+    }
+    
+    // Summary section
+    writeSectionTitle(out, "RESUMEN DE ACCIDENTES");
+    out << QString("Total de rutas afectadas: %1\n").arg(affectedRoutes.size() / 2); // Divide by 2 for undirected
+    out << QString("Fecha del reporte: %1\n\n").arg(formatDateTime());
+    
+    // Detail section
+    writeSectionTitle(out, "DETALLE DE RUTAS AFECTADAS");
+    
+    QSet<QPair<int, int>> processedRoutes;
+    
+    for (const auto& route : affectedRoutes)
+    {
+        int origin = route.first;
+        int dest = route.second;
+        
+        // Avoid duplicate entries for undirected graphs
+        QPair<int, int> reverseRoute(dest, origin);
+        if (processedRoutes.contains(route) || processedRoutes.contains(reverseRoute))
+        {
+            continue;
+        }
+        
+        processedRoutes.insert(route);
+        
+        // Get current weight
+        double currentWeight = graph.getEdgeWeight(origin, dest);
+        
+        // Get station info
+        Station* originStation = const_cast<Graph&>(graph).getStation(origin);
+        Station* destStation = const_cast<Graph&>(graph).getStation(dest);
+        
+        QString originName = originStation ? originStation->getName() : QString("Desconocida");
+        QString destName = destStation ? destStation->getName() : QString("Desconocida");
+        
+        out << QString("Ruta %1 <-> %2:\n")
+            .arg(origin)
+            .arg(dest);
+        out << QString("  Origen: %1 (%2)\n")
+            .arg(origin)
+            .arg(originName);
+        out << QString("  Destino: %1 (%2)\n")
+            .arg(dest)
+            .arg(destName);
+        out << QString("  Peso actual (con accidente): %1\n")
+            .arg(currentWeight, 0, 'f', 1);
+        out << QString("  Estado: AFECTADA POR ACCIDENTE\n");
+        out << "\n";
+    }
+    
+    // Recommendations section
+    writeSectionTitle(out, "RECOMENDACIONES");
+    out << "- Las rutas afectadas tienen tiempos/distancias incrementados.\n";
+    out << "- Se recomienda usar rutas alternativas cuando sea posible.\n";
+    out << "- Los algoritmos de ruta mas corta consideran estos incrementos.\n";
+    out << "- Use 'Limpiar Accidentes' para restaurar pesos originales.\n";
+    
+    // Write footer
+    writeFooter(out);
+    
+    file.close();
+    
+    qDebug() << "Reporte de accidentes generado exitosamente:" << filename;
+    return true;
+}

@@ -53,6 +53,10 @@ private slots:
     void onApplyClosuresClicked();
     void onClearClosuresClicked();
     
+    // Accident management slots
+    void onAddAccidentClicked();
+    void onClearAccidentsClicked();
+    
     // Menu action slots
     void onActionCargarDatos();
     void onActionGuardarDatos();

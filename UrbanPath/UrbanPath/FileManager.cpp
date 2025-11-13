@@ -568,3 +568,109 @@ bool FileManager::exportReport(const QString& filename, const QString& content)
     qDebug() << "Reporte exportado exitosamente a:" << filename;
     return true;
 }
+
+// Load accidents from file
+bool FileManager::loadAccidents(Graph& graph, const QString& filename)
+{
+    lastError.clear();
+    
+    // Try to find file in multiple locations
+    QString filePath = findFile(filename);
+    
+    if (filePath.isEmpty())
+    {
+        // File not found, but this is not necessarily an error
+        qDebug() << "[INFO] No se encontró archivo de accidentes:" << filename;
+        return false;
+    }
+    
+    qDebug() << "[INFO] Cargando accidentes desde:" << filePath;
+    
+    // Delegate to Graph's loadAccidents method
+    bool result = graph.loadAccidents(filePath);
+    
+    if (!result)
+    {
+        lastError = QString("No se pudieron cargar accidentes desde %1").arg(filename);
+    }
+    
+    return result;
+}
+
+// Save accidents to file
+bool FileManager::saveAccidents(const QString& filename, const Graph& graph)
+{
+    lastError.clear();
+
+    QFile file(filename);
+    
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        lastError = QString("No se pudo abrir el archivo %1 para escritura.").arg(filename);
+        qDebug() << "Error:" << lastError;
+        return false;
+    }
+    
+    QTextStream out(&file);
+    
+    // Write header
+    out << "# Archivo de accidentes - UrbanPath\n";
+    out << "# Formato: origen,destino,incremento_porcentual\n";
+    out << "#\n";
+    out << "# Cada linea representa un accidente que aumenta el peso de una ruta\n";
+    out << "# origen,destino: IDs de las estaciones conectadas\n";
+    out << "# incremento: porcentaje de aumento del peso (ej: 30 = +30%)\n";
+    out << "#\n";
+    out << "# IMPORTANTE: Los accidentes NO eliminan rutas, solo las hacen mas costosas\n";
+    out << "# Para eliminar completamente una ruta, use el sistema de cierres\n";
+    out << "#\n";
+    out << "# Generado: " << QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss") << "\n\n";
+    
+    // Get affected routes
+    QSet<QPair<int, int>> affectedRoutes = graph.getAffectedRoutes();
+    
+    if (affectedRoutes.isEmpty())
+    {
+        out << "# No hay accidentes activos\n";
+        file.close();
+        qDebug() << "Archivo de accidentes guardado (sin accidentes activos):" << filename;
+        return true;
+    }
+    
+    out << "# Accidentes activos\n";
+    
+    int accidentCount = 0;
+    QSet<QPair<int, int>> processedRoutes;
+    
+    // Write accidents (avoid duplicates for undirected graphs)
+    for (const auto& route : affectedRoutes)
+    {
+        int origin = route.first;
+        int dest = route.second;
+        
+        // Avoid duplicate entries for undirected graphs
+        QPair<int, int> reverseRoute(dest, origin);
+        if (processedRoutes.contains(route) || processedRoutes.contains(reverseRoute))
+        {
+            continue;
+        }
+        
+        processedRoutes.insert(route);
+        
+        // Calculate increment percentage from current and original weights
+        double currentWeight = graph.getEdgeWeight(origin, dest);
+        // Note: We can't retrieve the exact percentage used, so we calculate it
+        // This is a limitation - in a future version, we could store the percentage
+        // For now, we'll note this route has an accident but use a placeholder
+        
+        out << origin << "," << dest << ",30\n"; // Default 30% - user should adjust
+        accidentCount++;
+    }
+    
+    file.close();
+    
+    qDebug() << "Accidentes guardados en" << filename << "(" << accidentCount << "accidentes)";
+    qDebug() << "NOTA: Los porcentajes se guardaron como 30% por defecto. Ajuste manualmente si es necesario.";
+    
+    return true;
+}

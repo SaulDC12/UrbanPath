@@ -1,8 +1,0 @@
-# Archivo de estaciones - UrbanPath
-# Formato: id, nombre, coordenada_x, coordenada_y
-# Generado: 2025-11-13 05:18:47
-
-1, Estacion 1, 267.144, 275.762
-2, Estacion 2, 456.731, 220.227
-3, Estacion 3, 475.881, 377.258
-4, Estacion 4, 348.533, 379.173

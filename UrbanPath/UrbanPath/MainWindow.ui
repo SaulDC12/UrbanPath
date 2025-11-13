@@ -422,9 +422,37 @@ p, li { white-space: pre-wrap; }
                <item>
                 <widget class="QLabel" name="lblClosureRoute">
                  <property name="text">
-                  <string>Cerrar Ruta Seleccionada:</string>
+                  <string>Cerrar Ruta:</string>
                  </property>
                 </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_closure_origin">
+                 <item>
+                  <widget class="QLabel" name="lblClosureOrigin">
+                   <property name="text">
+                    <string>Origen:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboClosureOrigin"/>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_closure_dest">
+                 <item>
+                  <widget class="QLabel" name="lblClosureDest">
+                   <property name="text">
+                    <string>Destino:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboClosureDest"/>
+                 </item>
+                </layout>
                </item>
                <item>
                 <widget class="QPushButton" name="btnCloseRoute">
@@ -443,14 +471,96 @@ p, li { white-space: pre-wrap; }
                <item>
                 <widget class="QPushButton" name="btnApplyClosures">
                  <property name="text">
-                  <string>📂 Cargar desde Archivo</string>
+                  <string>📂 Cargar Cierres y Accidentes</string>
                  </property>
                 </widget>
                </item>
                <item>
                 <widget class="QPushButton" name="btnClearClosures">
                  <property name="text">
-                  <string>✅ Quitar Todos los Cierres</string>
+                  <string>✅ Limpiar Cierres</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBoxAccidents">
+              <property name="title">
+               <string>Gestion de Accidentes</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_9">
+               <item>
+                <widget class="QLabel" name="lblAccidentManual">
+                 <property name="text">
+                  <string>Agregar Accidente Manual:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_accident_1">
+                 <item>
+                  <widget class="QLabel" name="lblAccidentOrigin">
+                   <property name="text">
+                    <string>Origen:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboAccidentOrigin"/>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_accident_2">
+                 <item>
+                  <widget class="QLabel" name="lblAccidentDest">
+                   <property name="text">
+                    <string>Destino:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="comboAccidentDest"/>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_accident_3">
+                 <item>
+                  <widget class="QLabel" name="lblAccidentPercent">
+                   <property name="text">
+                    <string>Incremento %:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QDoubleSpinBox" name="spinAccidentPercent">
+                   <property name="minimum">
+                    <double>1.000000000000000</double>
+                   </property>
+                   <property name="maximum">
+                    <double>500.000000000000000</double>
+                   </property>
+                   <property name="value">
+                    <double>30.000000000000000</double>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnAddAccident">
+                 <property name="text">
+                  <string>🚧 Agregar Accidente</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnClearAccidents">
+                 <property name="text">
+                  <string>✅ Limpiar Accidentes</string>
                  </property>
                 </widget>
                </item>
@@ -471,46 +581,46 @@ p, li { white-space: pre-wrap; }
              </spacer>
             </item>
            </layout>
-           </widget>
           </widget>
-          <widget class="QWidget" name="widgetGraphView">
-           <layout class="QVBoxLayout" name="verticalLayout_7">
-            <item>
-             <widget class="QGraphicsView" name="graphicsViewGraph">
-              <property name="renderHints">
-               <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform|QPainter::TextAntialiasing</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QTextEdit" name="txtGraphOutput">
-              <property name="maximumHeight">
-               <number>150</number>
-              </property>
-              <property name="readOnly">
-               <bool>true</bool>
-              </property>
-              <property name="html">
-               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+         </widget>
+         <widget class="QWidget" name="widgetGraphView">
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <item>
+            <widget class="QGraphicsView" name="graphicsViewGraph">
+             <property name="renderHints">
+              <set>QPainter::Antialiasing|QPainter::SmoothPixmapTransform|QPainter::TextAntialiasing</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTextEdit" name="txtGraphOutput">
+             <property name="maximumHeight">
+              <number>150</number>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+             <property name="html">
+              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt; font-weight:600; color:#0000ff;&quot;&gt;=== Red de Transporte (Grafo) ===&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Listo para gestionar rutas.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
-        </item>
-       </layout>
-      </widget>
+        </widget>
+       </item>
+      </layout>
      </widget>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QMenuBar" name="menuBar">
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>

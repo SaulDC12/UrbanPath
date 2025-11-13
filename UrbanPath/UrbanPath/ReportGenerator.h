@@ -25,6 +25,7 @@ public:
     bool generateSystemStats(const QString& filename, const Graph& graph, const StationBST& bst);
     bool generateMSTReport(const QString& filename, const Graph& graph);
     bool generateConnectivityReport(const QString& filename, const Graph& graph);
+    bool generateAccidentReport(const QString& filename, const Graph& graph);
     
     // Incremental report (append mode)
     bool appendToReport(const QString& filename, const QString& sectionTitle, const QString& content);

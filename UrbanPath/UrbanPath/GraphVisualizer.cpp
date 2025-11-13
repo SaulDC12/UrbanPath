@@ -10,9 +10,9 @@ GraphVisualizer::GraphVisualizer(QGraphicsScene* scene, QGraphicsView* view, Gra
     // Initialize default visual settings - will be recalculated when map loads
     nodeRadius = 30.0;  // Default, will adjust to map size
     normalNodeColor = QColor(57, 255, 20);       // Neon green to match connections
-    highlightNodeColor = QColor(255, 69, 0);     // Red-orange
+    highlightNodeColor = QColor(0, 255, 255);    // Cyan for Dijkstra path
     normalEdgeColor = QColor(57, 255, 20);       // Neon green for strong contrast
-    optimalEdgeColor = QColor(255, 0, 0);        // Red
+    optimalEdgeColor = QColor(0, 255, 255);      // Cyan for Dijkstra path
     normalEdgeWidth = 6.0;   // Default, will adjust to map size
     optimalEdgeWidth = 10.0;  // Default, will adjust to map size
     
@@ -320,9 +320,24 @@ void GraphVisualizer::drawStationNode(const Station& station)
 // Draw an edge between two stations
 void GraphVisualizer::drawEdge(int fromId, int toId, double weight)
 {
-    // Check if route is closed
+    // Check if route is closed (highest priority - red)
     bool isClosed = graph->isRouteClosed(fromId, toId);
-    QColor edgeColor = isClosed ? QColor(255, 0, 0) : normalEdgeColor;  // Red if closed
+    
+    // Check if route has an accident (medium priority - orange)
+    QSet<QPair<int, int>> affectedRoutes = graph->getAffectedRoutes();
+    bool hasAccident = affectedRoutes.contains(QPair<int, int>(fromId, toId)) || 
+                       affectedRoutes.contains(QPair<int, int>(toId, fromId));
+    
+    // Determine color: Red if closed, Orange if accident, Green otherwise
+    QColor edgeColor = normalEdgeColor;  // Default: Neon green
+    if (isClosed)
+    {
+        edgeColor = QColor(255, 0, 0);  // Red for closed routes
+    }
+    else if (hasAccident)
+    {
+        edgeColor = QColor(255, 140, 0);  // Orange for accidents
+    }
     
     QPen pen(edgeColor, normalEdgeWidth);
     drawEdgeWithStyle(fromId, toId, weight, pen);

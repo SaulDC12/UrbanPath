@@ -1,0 +1,13 @@
+# Archivo de accidentes - UrbanPath
+# Formato: origen,destino,incremento_porcentual
+#
+# Cada linea representa un accidente que aumenta el peso de una ruta
+# origen,destino: IDs de las estaciones conectadas
+# incremento: porcentaje de aumento del peso (ej: 30 = +30%)
+#
+# IMPORTANTE: Los accidentes NO eliminan rutas, solo las hacen mas costosas
+# Para eliminar completamente una ruta, use el sistema de cierres
+#
+# Generado: 2025-11-13 14:04:02
+
+# No hay accidentes activos

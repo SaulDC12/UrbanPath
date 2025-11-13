@@ -21,11 +21,13 @@ public:
     bool loadStations(const QString& filename, StationBST& bst, Graph& graph);
     bool loadRoutes(const QString& filename, Graph& graph);
     bool loadClosures(const QString& filename, Graph& graph);
+    bool loadAccidents(Graph& graph, const QString& filename = "accidentes.txt");
     
     // Save data to files
     bool saveStations(const QString& filename, const StationBST& bst);
     bool saveRoutes(const QString& filename, const Graph& graph);
     bool saveClosures(const QString& filename, const Graph& graph);
+    bool saveAccidents(const QString& filename, const Graph& graph);
     bool exportReport(const QString& filename, const QString& content);
     
     // Utility methods
