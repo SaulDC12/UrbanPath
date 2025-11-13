@@ -21,6 +21,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+protected:
+    void showEvent(QShowEvent* event) override;
+
 private slots:
     // BST Tab slots
     void onAddStationClicked();
@@ -43,6 +46,12 @@ private slots:
     void onDFSClicked();
     void onDrawGraphClicked();
     void onClearGraphClicked();
+    
+    // Closure management slots
+    void onCloseStationClicked();
+    void onCloseRouteClicked();
+    void onApplyClosuresClicked();
+    void onClearClosuresClicked();
     
     // Menu action slots
     void onActionCargarDatos();

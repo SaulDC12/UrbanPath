@@ -1,0 +1,41 @@
+========================================
+  ESTADISTICAS DEL SISTEMA URBANPATH
+========================================
+Fecha: 2025-11-13
+Hora: 05:19:04
+========================================
+
+
+ESTADISTICAS GENERALES
+----------------------
+Total de estaciones en el grafo: 4
+Total de estaciones en el BST: 4
+Total de rutas (conexiones): 5
+Tipo de grafo: No dirigido
+Conectividad promedio por estacion: 2.50
+
+ARBOL DE EXPANSION MINIMA (MST)
+-------------------------------
+Aristas del MST:
+  Estacion 4 <-> Estacion 3: 2.0
+  Estacion 2 <-> Estacion 4: 5.0
+  Estacion 3 <-> Estacion 1: 7.0
+
+Total de aristas en MST: 3
+Peso total del MST: 14.0
+Peso promedio por arista: 4.67
+
+LISTADO DE ESTACIONES
+---------------------
+  1. Estacion 2: Estacion 2 (X: 456.7, Y: 220.2)
+     Conexiones: 3
+  2. Estacion 4: Estacion 4 (X: 348.5, Y: 379.2)
+     Conexiones: 2
+  3. Estacion 3: Estacion 3 (X: 475.9, Y: 377.3)
+     Conexiones: 3
+  4. Estacion 1: Estacion 1 (X: 267.1, Y: 275.8)
+     Conexiones: 2
+
+========================================
+  Fin del reporte
+========================================

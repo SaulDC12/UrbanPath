@@ -2,6 +2,10 @@
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QShowEvent>
+#include <QSet>
+#include <QStringList>
+#include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), dataLoaded(false)
@@ -81,6 +85,18 @@ MainWindow::~MainWindow()
 {
     delete visualizer;
     delete scene;
+}
+
+// Override showEvent to properly fit background after window is visible
+void MainWindow::showEvent(QShowEvent* event)
+{
+    QMainWindow::showEvent(event);
+    
+    // After the window is shown and has its proper size, fit the background
+    if (visualizer && scene)
+    {
+        visualizer->fitInView();
+    }
 }
 
 // Apply dark theme stylesheet
@@ -217,6 +233,63 @@ void MainWindow::applyDarkTheme()
             border: 2px solid #2A3C4F;
             border-radius: 8px;
         }
+        
+        QScrollArea {
+            background-color: #101820;
+            border: 2px solid #2A3C4F;
+            border-radius: 8px;
+        }
+        
+        QScrollBar:vertical {
+            background-color: #1C2835;
+            width: 14px;
+            border-radius: 7px;
+            margin: 0px;
+        }
+        
+        QScrollBar::handle:vertical {
+            background-color: #00CC88;
+            border-radius: 7px;
+            min-height: 30px;
+        }
+        
+        QScrollBar::handle:vertical:hover {
+            background-color: #00FF99;
+        }
+        
+        QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            height: 0px;
+        }
+        
+        QScrollBar:horizontal {
+            background-color: #1C2835;
+            height: 14px;
+            border-radius: 7px;
+            margin: 0px;
+        }
+        
+        QScrollBar::handle:horizontal {
+            background-color: #00CC88;
+            border-radius: 7px;
+            min-width: 30px;
+        }
+        
+        QScrollBar::handle:horizontal:hover {
+            background-color: #00FF99;
+        }
+        
+        QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+            width: 0px;
+        }
+        
+        QSplitter::handle {
+            background-color: #2A3C4F;
+            width: 3px;
+        }
+        
+        QSplitter::handle:hover {
+            background-color: #00CC88;
+        }
     )";
     
     this->setStyleSheet(darkTheme);
@@ -225,20 +298,28 @@ void MainWindow::applyDarkTheme()
 // Load background image
 void MainWindow::loadBackgroundImage()
 {
-    if (fileManager.fileExists("data/mapa.png"))
+    QStringList possiblePaths = {
+        "mapa.png",
+        "../mapa.png",
+        "../../mapa.png",
+        "../../../mapa.png",
+        "../../../../mapa.png",
+        "data/mapa.png",
+        "../data/mapa.png",
+        "../../data/mapa.png"
+    };
+    
+    for (const QString& path : possiblePaths)
     {
-        visualizer->loadBackground("data/mapa.png");
-        logGraph("Mapa de fondo cargado correctamente.", "green");
+        if (QFile::exists(path))
+        {
+            visualizer->loadBackground(path);
+            logGraph(QString("Mapa de fondo cargado correctamente desde: %1").arg(path), "green");
+            return;
+        }
     }
-    else if (fileManager.fileExists("mapa.png"))
-    {
-        visualizer->loadBackground("mapa.png");
-        logGraph("Mapa de fondo cargado correctamente.", "green");
-    }
-    else
-    {
-        logGraph("Advertencia: No se encontro imagen de fondo.", "orange");
-    }
+    
+    logGraph("Advertencia: No se encontro imagen de fondo.", "orange");
 }
 
 // Update combo boxes with station IDs
@@ -246,6 +327,7 @@ void MainWindow::updateComboBoxes()
 {
     ui.comboOrigin->clear();
     ui.comboDestination->clear();
+    ui.comboClosureStation->clear();
     
     QList<Station> stations = graph.getAllStations();
     for (const Station& station : stations)
@@ -253,6 +335,7 @@ void MainWindow::updateComboBoxes()
         QString text = QString("%1 - %2").arg(station.getId()).arg(station.getName());
         ui.comboOrigin->addItem(text, station.getId());
         ui.comboDestination->addItem(text, station.getId());
+        ui.comboClosureStation->addItem(text, station.getId());
     }
 }
 
@@ -276,7 +359,7 @@ void MainWindow::logGraph(const QString& message, const QString& color)
         .arg(color)
         .arg(timestamp)
         .arg(message);
-    
+                            
     ui.txtGraphOutput->append(formattedMessage);
 }
 
@@ -312,6 +395,12 @@ void MainWindow::onAddStationClicked()
     if (id <= 0 || name.isEmpty())
     {
         showErrorMessage("Error", "Por favor ingrese ID y nombre validos.");
+        return;
+    }
+
+    if (visualizer && !visualizer->isPointWithinMap(x, y))
+    {
+        showErrorMessage("Error", "Las coordenadas deben estar dentro del mapa.");
         return;
     }
     
@@ -480,6 +569,11 @@ void MainWindow::onAddRouteClicked()
     logGraph(QString("Ruta agregada: %1 <-> %2 (distancia %3)")
         .arg(origin).arg(dest).arg(weight, 0, 'f', 1), "green");
     
+    if (visualizer)
+    {
+        visualizer->drawGraph();
+    }
+    
     statusBar()->showMessage(QString("Ruta %1-%2 agregada").arg(origin).arg(dest), 3000);
 }
 
@@ -498,6 +592,12 @@ void MainWindow::onRemoveRouteClicked()
     graph.removeEdge(origin, dest);
     
     logGraph(QString("Ruta eliminada: %1 <-> %2").arg(origin).arg(dest), "red");
+    
+    if (visualizer)
+    {
+        visualizer->drawGraph();
+    }
+    
     statusBar()->showMessage(QString("Ruta %1-%2 eliminada").arg(origin).arg(dest), 3000);
 }
 
@@ -510,12 +610,31 @@ void MainWindow::onShortestPathClicked()
         return;
     }
     
+    // Check if graph is drawn
+    if (!visualizer->isGraphDrawn())
+    {
+        showErrorMessage("Error", 
+            "Debe dibujar el grafo primero.\n\n"
+            "Haga clic en el boton 'Dibujar Grafo' antes de calcular rutas.");
+        logGraph("Error: Intento de calcular ruta sin grafo dibujado.", "red");
+        return;
+    }
+    
     int origin = ui.comboOrigin->currentData().toInt();
     int dest = ui.comboDestination->currentData().toInt();
     
+    if (origin == dest)
+    {
+        showInfoMessage("Informacion", "Origen y destino son la misma estacion.");
+        return;
+    }
+    
     logGraph(QString("Calculando ruta mas corta de %1 a %2...").arg(origin).arg(dest), "blue");
     
-    QHash<int, double> distances = graph.dijkstra(origin);
+    // Get distances and predecessors
+    QPair<QHash<int, double>, QHash<int, int>> result = graph.dijkstraWithPath(origin);
+    QHash<int, double> distances = result.first;
+    QHash<int, int> predecessors = result.second;
     
     if (distances[dest] >= std::numeric_limits<double>::infinity())
     {
@@ -524,17 +643,42 @@ void MainWindow::onShortestPathClicked()
         return;
     }
     
+    // Reconstruct the complete path
     QList<int> route;
-    route.append(origin);
-    route.append(dest);
+    int current = dest;
     
+    while (current != -1)
+    {
+        route.prepend(current);  // Add to front of list
+        current = predecessors[current];
+        
+        // Break if we've reached the origin or if there's no predecessor
+        if (current == origin)
+        {
+            route.prepend(origin);
+            break;
+        }
+    }
+    
+    // Draw the optimal route
     visualizer->drawOptimalRoute(route);
     
-    logGraph(QString("Ruta mas corta: %1 -> %2 (distancia: %3)")
-        .arg(origin).arg(dest).arg(distances[dest], 0, 'f', 1), "green");
+    // Log the complete path
+    QString pathStr = "Ruta: ";
+    for (int i = 0; i < route.size(); i++)
+    {
+        pathStr += QString::number(route[i]);
+        if (i < route.size() - 1)
+        {
+            pathStr += " -> ";
+        }
+    }
+    
+    logGraph(pathStr, "green");
+    logGraph(QString("Distancia total: %1").arg(distances[dest], 0, 'f', 1), "green");
     
     reportGenerator.generateRouteReport("reporte_ruta_corta.txt", route, graph);
-    statusBar()->showMessage(QString("Distancia: %1").arg(distances[dest], 0, 'f', 1), 5000);
+    statusBar()->showMessage(QString("Distancia: %1 | %2 estaciones").arg(distances[dest], 0, 'f', 1).arg(route.size()), 5000);
 }
 
 // Slot: Floyd-Warshall
@@ -676,6 +820,196 @@ void MainWindow::onClearGraphClicked()
     statusBar()->showMessage("Vista limpiada", 2000);
 }
 
+// ====== CLOSURE MANAGEMENT ======
+
+// Slot: Close Station Manually
+void MainWindow::onCloseStationClicked()
+{
+    if (ui.comboClosureStation->count() == 0)
+    {
+        showErrorMessage("Error", "No hay estaciones disponibles para cerrar.");
+        return;
+    }
+    
+    int stationId = ui.comboClosureStation->currentData().toInt();
+    QString stationName = ui.comboClosureStation->currentText();
+    
+    if (graph.isStationClosed(stationId))
+    {
+        showInfoMessage("Información", 
+            QString("La estación %1 ya está cerrada.").arg(stationName));
+        return;
+    }
+    
+    if (!confirmAction("Cerrar Estación", 
+        QString("¿Está seguro de que desea CERRAR la estación?\n\n%1\n\n"
+                "La estación se mostrará en GRIS y los algoritmos la ignorarán.")
+        .arg(stationName)))
+    {
+        return;
+    }
+    
+    graph.closeStation(stationId);
+    
+    logGraph(QString("🚧 Estación cerrada manualmente: %1").arg(stationName), "orange");
+    
+    // Redraw to show closure
+    if (visualizer)
+    {
+        visualizer->drawGraph();
+    }
+    
+    statusBar()->showMessage(QString("Estación %1 cerrada").arg(stationId), 3000);
+    showInfoMessage("Estación Cerrada", 
+        QString("La estación %1 ha sido cerrada.\n\n"
+                "• Aparecerá en GRIS en el mapa\n"
+                "• Los algoritmos la ignorarán\n\n"
+                "Use 'Quitar Todos los Cierres' para reactivarla.")
+        .arg(stationName));
+}
+
+// Slot: Close Route Manually
+void MainWindow::onCloseRouteClicked()
+{
+    if (ui.comboOrigin->count() == 0 || ui.comboDestination->count() == 0)
+    {
+        showErrorMessage("Error", "Debe cargar estaciones primero.");
+        return;
+    }
+    
+    int origin = ui.comboOrigin->currentData().toInt();
+    int dest = ui.comboDestination->currentData().toInt();
+    
+    if (origin == dest)
+    {
+        showErrorMessage("Error", "Origen y destino deben ser diferentes.");
+        return;
+    }
+    
+    if (!graph.hasEdge(origin, dest))
+    {
+        showErrorMessage("Error", 
+            QString("No existe una ruta entre las estaciones %1 y %2.").arg(origin).arg(dest));
+        return;
+    }
+    
+    if (graph.isRouteClosed(origin, dest))
+    {
+        showInfoMessage("Información", 
+            QString("La ruta entre %1 y %2 ya está cerrada.").arg(origin).arg(dest));
+        return;
+    }
+    
+    if (!confirmAction("Cerrar Ruta", 
+        QString("¿Está seguro de que desea CERRAR la ruta?\n\n"
+                "Estación %1 ↔ Estación %2\n\n"
+                "La ruta se mostrará en ROJO y los algoritmos la ignorarán.")
+        .arg(origin).arg(dest)))
+    {
+        return;
+    }
+    
+    graph.closeRoute(origin, dest);
+    
+    logGraph(QString("🚧 Ruta cerrada manualmente: %1 ↔ %2").arg(origin).arg(dest), "orange");
+    
+    // Redraw to show closure
+    if (visualizer)
+    {
+        visualizer->drawGraph();
+    }
+    
+    statusBar()->showMessage(QString("Ruta %1-%2 cerrada").arg(origin).arg(dest), 3000);
+    showInfoMessage("Ruta Cerrada", 
+        QString("La ruta entre estaciones %1 y %2 ha sido cerrada.\n\n"
+                "• Aparecerá en ROJO en el mapa\n"
+                "• Los algoritmos la ignorarán\n\n"
+                "Use 'Quitar Todos los Cierres' para reactivarla.")
+        .arg(origin).arg(dest));
+}
+
+// Slot: Apply Closures from File
+void MainWindow::onApplyClosuresClicked()
+{
+    logGraph("Aplicando cierres desde archivo...", "blue");
+    statusBar()->showMessage("Aplicando cierres...");
+    
+    if (!dataLoaded)
+    {
+        showErrorMessage("Error", "Debe cargar datos primero.");
+        return;
+    }
+    
+    bool closuresLoaded = fileManager.loadClosures("cierres.txt", graph);
+    
+    if (closuresLoaded)
+    {
+        QSet<int> closedStations = graph.getClosedStations();
+        QList<QPair<int, int>> closedRoutes = graph.getClosedRoutes();
+        
+        logGraph(QString("🚧 Cierres aplicados: %1 estaciones, %2 rutas bloqueadas")
+            .arg(closedStations.size())
+            .arg(closedRoutes.size()), "orange");
+        
+        // Redraw graph to show closures visually
+        if (visualizer)
+        {
+            visualizer->drawGraph();
+        }
+        
+        statusBar()->showMessage(QString("Cierres aplicados: %1 estaciones, %2 rutas")
+            .arg(closedStations.size()).arg(closedRoutes.size()), 5000);
+        
+        showInfoMessage("Cierres Aplicados", 
+            QString("Se han aplicado los cierres correctamente:\n\n"
+                    "• Estaciones cerradas: %1\n"
+                    "• Rutas cerradas: %2\n\n"
+                    "Las estaciones cerradas aparecen en GRIS.\n"
+                    "Las rutas cerradas aparecen en ROJO.")
+            .arg(closedStations.size())
+            .arg(closedRoutes.size()));
+    }
+    else
+    {
+        QString error = fileManager.getLastError();
+        if (error.isEmpty())
+        {
+            error = "No se pudo cargar el archivo cierres.txt.\nVerifique que el archivo exista en la raíz del proyecto.";
+        }
+        logGraph(QString("Error al aplicar cierres: %1").arg(error), "red");
+        showErrorMessage("Error al Aplicar Cierres", error);
+        statusBar()->showMessage("Error al aplicar cierres");
+    }
+}
+
+// Slot: Clear Closures
+void MainWindow::onClearClosuresClicked()
+{
+    if (!dataLoaded)
+    {
+        showErrorMessage("Error", "Debe cargar datos primero.");
+        return;
+    }
+    
+    if (!confirmAction("Quitar Cierres", "¿Está seguro de que desea quitar todos los cierres?"))
+    {
+        return;
+    }
+    
+    graph.clearClosures();
+    
+    logGraph("✅ Todos los cierres han sido eliminados.", "green");
+    
+    // Redraw graph to show all routes/stations active again
+    if (visualizer)
+    {
+        visualizer->drawGraph();
+    }
+    
+    statusBar()->showMessage("Cierres eliminados - Red completa restaurada", 3000);
+    showInfoMessage("Cierres Eliminados", "Todos los cierres han sido eliminados.\nLa red de transporte está completamente operativa.");
+}
+
 // ====== MENU ACTIONS ======
 
 // Menu Action: Cargar Datos
@@ -694,11 +1028,14 @@ void MainWindow::onActionCargarDatos()
     
     if (!stationsLoaded)
     {
-        logBST("Error: No se pudieron cargar las estaciones.", "red");
-        logGraph("Error: No se pudieron cargar las estaciones.", "red");
-        showErrorMessage("Error de Carga", 
-            "No se pudo cargar el archivo estaciones.txt.\n"
-            "Verifique que el archivo exista.");
+        QString error = fileManager.getLastError();
+        if (error.isEmpty())
+        {
+            error = "No se pudo cargar el archivo estaciones.txt. Verifique que exista.";
+        }
+        logBST(QString("Error: %1").arg(error), "red");
+        logGraph(QString("Error: %1").arg(error), "red");
+        showErrorMessage("Error de Carga", error);
         statusBar()->showMessage("Error al cargar datos");
         return;
     }
@@ -706,22 +1043,99 @@ void MainWindow::onActionCargarDatos()
     // Load routes
     bool routesLoaded = fileManager.loadRoutes("rutas.txt", graph);
     
-    if (!routesLoaded)
-    {
-        logGraph("Advertencia: No se pudieron cargar las rutas.", "orange");
-    }
-    
     dataLoaded = true;
     updateComboBoxes();
     
     logBST(QString("Datos cargados: %1 estaciones.").arg(bst.count()), "green");
-    logGraph(QString("Datos cargados: %1 estaciones.").arg(graph.getStationCount()), "green");
+    if (graph.getStationCount() == 0)
+    {
+        logGraph("No se encontraron estaciones en el archivo.", "orange");
+    }
+    else
+    {
+        logGraph(QString("Datos cargados: %1 estaciones.").arg(graph.getStationCount()), "green");
+    }
+    
+    // Count unique routes loaded (avoid duplicates in undirected graph)
+    QSet<QPair<int, int>> countedEdges;
+    int routeCount = 0;
+    QList<Station> loadedStations = graph.getAllStations();
+    for (const Station& station : loadedStations)
+    {
+        int fromId = station.getId();
+        QList<QPair<int, double>> neighbors = graph.getNeighbors(fromId);
+        for (const auto& neighbor : neighbors)
+        {
+            int toId = neighbor.first;
+            QPair<int, int> edgeKey(std::min(fromId, toId), std::max(fromId, toId));
+            if (!countedEdges.contains(edgeKey))
+            {
+                countedEdges.insert(edgeKey);
+                routeCount++;
+            }
+        }
+    }
+    
+    if (!routesLoaded)
+    {
+        QString error = fileManager.getLastError();
+        if (!error.isEmpty())
+        {
+            logGraph(QString("Advertencia: %1").arg(error), "orange");
+        }
+    }
+    
+    if (routeCount == 0)
+    {
+        logGraph("No se encontraron rutas en el archivo.", "orange");
+    }
+    else
+    {
+        logGraph(QString("Rutas cargadas: %1").arg(routeCount), "green");
+    }
+    
+    // Load closures automatically if file exists
+    bool closuresLoaded = false;
+    if (fileManager.fileExists("cierres.txt"))
+    {
+        closuresLoaded = fileManager.loadClosures("cierres.txt", graph);
+        
+        if (closuresLoaded)
+        {
+            QSet<int> closedStations = graph.getClosedStations();
+            QList<QPair<int, int>> closedRoutes = graph.getClosedRoutes();
+            int totalClosures = closedStations.size() + closedRoutes.size();
+            
+            if (totalClosures > 0)
+            {
+                logGraph(QString("🚧 Cierres cargados: %1 estaciones, %2 rutas cerradas")
+                    .arg(closedStations.size())
+                    .arg(closedRoutes.size()), "orange");
+            }
+        }
+    }
+    
+    logGraph("Presiona 'Dibujar Grafo' para visualizar la red.", "orange");
     
     statusBar()->showMessage("Datos cargados correctamente", 3000);
     
+    QString closureInfo = "";
+    QSet<int> closedStations = graph.getClosedStations();
+    QList<QPair<int, int>> closedRoutes = graph.getClosedRoutes();
+    int totalClosures = closedStations.size() + closedRoutes.size();
+    
+    if (totalClosures > 0)
+    {
+        closureInfo = QString("\n\n🚧 Cierres activos:\n• Estaciones cerradas: %1\n• Rutas cerradas: %2")
+            .arg(closedStations.size())
+            .arg(closedRoutes.size());
+    }
+    
     showInfoMessage("Carga Exitosa", 
-        QString("Datos cargados correctamente:\n\nEstaciones: %1")
-        .arg(graph.getStationCount()));
+        QString("Datos cargados correctamente:\n\nEstaciones: %1\nRutas: %2%3")
+        .arg(graph.getStationCount())
+        .arg(routeCount)
+        .arg(closureInfo));
 }
 
 // Menu Action: Guardar Datos
@@ -733,19 +1147,57 @@ void MainWindow::onActionGuardarDatos()
         return;
     }
     
-    bool stationsSaved = fileManager.saveStations("estaciones_guardadas.txt", bst);
-    bool routesSaved = fileManager.saveRoutes("rutas_guardadas.txt", graph);
+    bool stationsSaved = fileManager.saveStations("estaciones.txt", bst);
+    QString stationError = stationsSaved ? QString() : fileManager.getLastError();
     
-    if (stationsSaved && routesSaved)
+    bool routesSaved = fileManager.saveRoutes("rutas.txt", graph);
+    QString routeError = routesSaved ? QString() : fileManager.getLastError();
+    
+    bool closuresSaved = fileManager.saveClosures("cierres.txt", graph);
+    QString closureError = closuresSaved ? QString() : fileManager.getLastError();
+    
+    if (stationsSaved && routesSaved && closuresSaved)
     {
-        logBST("Datos guardados exitosamente.", "green");
-        logGraph("Datos guardados exitosamente.", "green");
+        logBST("Estaciones guardadas en estaciones.txt", "green");
+        logGraph("Rutas guardadas en rutas.txt", "green");
+        
+        QSet<int> closedStations = graph.getClosedStations();
+        QList<QPair<int, int>> closedRoutes = graph.getClosedRoutes();
+        int totalClosures = closedStations.size() + closedRoutes.size();
+        
+        if (totalClosures > 0)
+        {
+            logGraph(QString("Cierres guardados en cierres.txt (%1 cierres)").arg(totalClosures), "green");
+        }
+        else
+        {
+            logGraph("Sin cierres activos (archivo cierres.txt limpiado)", "green");
+        }
+        
         statusBar()->showMessage("Datos guardados correctamente", 3000);
-        showInfoMessage("Guardado Exitoso", "Los datos se han guardado correctamente.");
+        showInfoMessage("Guardado Exitoso", 
+            QString("Los datos se han guardado correctamente:\n\n"
+                    "• Estaciones: estaciones.txt\n"
+                    "• Rutas: rutas.txt\n"
+                    "• Cierres: cierres.txt (%1)").arg(totalClosures));
     }
     else
     {
-        showErrorMessage("Error de Guardado", "No se pudieron guardar todos los archivos.");
+        QStringList errors;
+        if (!stationError.isEmpty())
+        {
+            errors << stationError;
+        }
+        if (!routeError.isEmpty())
+        {
+            errors << routeError;
+        }
+        if (!closureError.isEmpty())
+        {
+            errors << closureError;
+        }
+        QString errorMessage = errors.isEmpty() ? "No se pudieron guardar todos los archivos." : errors.join("\n");
+        showErrorMessage("Error de Guardado", errorMessage);
     }
 }
 
@@ -796,7 +1248,7 @@ void MainWindow::onActionVerUltimoReporte()
     else
     {
         showInfoMessage("Informacion", 
-            "No se encontr� ningun reporte.\n"
+            "No se encontr� ningun reporte.\n"
             "Genere reportes primero.");
     }
 }
@@ -851,6 +1303,20 @@ void MainWindow::setupConnections()
     connect(ui.btnDFS, &QPushButton::clicked, this, &MainWindow::onDFSClicked);
     connect(ui.btnDrawGraph, &QPushButton::clicked, this, &MainWindow::onDrawGraphClicked);
     connect(ui.btnClearGraph, &QPushButton::clicked, this, &MainWindow::onClearGraphClicked);
+    
+    // Closure management connections
+    connect(ui.btnCloseStation, &QPushButton::clicked, this, &MainWindow::onCloseStationClicked);
+    connect(ui.btnCloseRoute, &QPushButton::clicked, this, &MainWindow::onCloseRouteClicked);
+    connect(ui.btnApplyClosures, &QPushButton::clicked, this, &MainWindow::onApplyClosuresClicked);
+    connect(ui.btnClearClosures, &QPushButton::clicked, this, &MainWindow::onClearClosuresClicked);
+    
+    connect(ui.tabWidget, &QTabWidget::currentChanged, this, [this](int index) {
+        // Auto-fit map when Graph tab becomes visible
+        if (index == ui.tabWidget->indexOf(ui.tabGraph) && visualizer)
+        {
+            visualizer->fitInView();
+        }
+    });
     
     // Menu action connections
     connect(ui.actionCargarDatos, &QAction::triggered, this, &MainWindow::onActionCargarDatos);

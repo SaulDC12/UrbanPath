@@ -1,31 +1,35 @@
 ========================================
   REPORTE DE ARBOL DE EXPANSION MINIMA
 ========================================
-Fecha: 2025-11-12
-Hora: 03:42:18
+Fecha: 2025-11-13
+Hora: 05:19:04
 ========================================
 
 
 ALGORITMO DE KRUSKAL
 --------------------
 Aristas seleccionadas (ordenadas por peso):
-  1. (123213, 12312) - Peso: 10.0
+  1. (4, 3) - Peso: 2.0
+  2. (2, 4) - Peso: 5.0
+  3. (3, 1) - Peso: 7.0
 
-Peso total (Kruskal): 10.0
-Total de aristas: 1
+Peso total (Kruskal): 14.0
+Total de aristas: 3
 
 ALGORITMO DE PRIM
 -----------------
 Aristas seleccionadas (orden de construccion):
-  1. (123213, 12312) - Peso: 10.0
+  1. (2, 4) - Peso: 5.0
+  2. (4, 3) - Peso: 2.0
+  3. (3, 1) - Peso: 7.0
 
-Peso total (Prim): 10.0
-Total de aristas: 1
+Peso total (Prim): 14.0
+Total de aristas: 3
 
 COMPARACION DE ALGORITMOS
 -------------------------
-Peso Kruskal: 10.0
-Peso Prim: 10.0
+Peso Kruskal: 14.0
+Peso Prim: 14.0
 Diferencia: 0.0000
 Nota: Ambos algoritmos deben producir el mismo peso total.
 

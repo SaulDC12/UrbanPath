@@ -1,8 +1,8 @@
 ========================================
   REPORTE DE RUTA
 ========================================
-Fecha: 2025-11-12
-Hora: 04:40:11
+Fecha: 2025-11-13
+Hora: 05:18:18
 ========================================
 
 INFORMACION DE LA RUTA
@@ -10,11 +10,11 @@ INFORMACION DE LA RUTA
 Numero de estaciones en la ruta: 2
 
 Recorrido:
-  1. Estacion 8: Estacion 8 (X: -181.7, Y: -75.1)
-     -> No hay conexion directa
-  2. Estacion 8: Estacion 8 (X: -181.7, Y: -75.1)
+  1. Estacion 1: Estacion 1 (X: 267.1, Y: 275.8)
+     -> Distancia al siguiente: 7.0
+  2. Estacion 3: Estacion 3 (X: 475.9, Y: 377.3)
 ----------------------------------------
-Distancia total de la ruta: 0.0
+Distancia total de la ruta: 7.0
 
 ========================================
   Fin del reporte

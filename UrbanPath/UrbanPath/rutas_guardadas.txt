@@ -1,0 +1,4 @@
+# Archivo de rutas - UrbanPath
+# Formato: origen, destino, peso
+# Generado: 2025-11-13 02:42:15
+

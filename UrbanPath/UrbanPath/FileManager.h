@@ -25,6 +25,7 @@ public:
     // Save data to files
     bool saveStations(const QString& filename, const StationBST& bst);
     bool saveRoutes(const QString& filename, const Graph& graph);
+    bool saveClosures(const QString& filename, const Graph& graph);
     bool exportReport(const QString& filename, const QString& content);
     
     // Utility methods
@@ -40,5 +41,8 @@ private:
     QStringList splitLine(const QString& line, const QString& separator) const;
     bool validateStationLine(const QStringList& parts) const;
     bool validateRouteLine(const QStringList& parts) const;
+    
+    // Find file in multiple locations
+    QString findFile(const QString& filename) const;
 };
 

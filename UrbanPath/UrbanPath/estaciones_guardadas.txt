@@ -1,0 +1,4 @@
+# Archivo de estaciones - UrbanPath
+# Formato: id, nombre, coordenada_x, coordenada_y
+# Generado: 2025-11-13 02:42:15
+

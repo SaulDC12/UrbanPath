@@ -74,6 +74,8 @@ public:
     // Utility
     void fitInView();
     void resetZoom();
+    bool isGraphDrawn() const;  // Check if graph is currently drawn
+    bool isPointWithinMap(double x, double y) const;
     
     // Map click callback setup
     void setClickCallback(function<void(double, double)> callback);

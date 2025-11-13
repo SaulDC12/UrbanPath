@@ -7,8 +7,8 @@
 // Check if file exists
 bool FileManager::fileExists(const QString& path) const
 {
-    QFile file(path);
-    return file.exists();
+    QString filePath = findFile(path);
+    return !filePath.isEmpty();
 }
 
 // Clear file contents
@@ -50,6 +50,36 @@ QStringList FileManager::splitLine(const QString& line, const QString& separator
     }
     
     return result;
+}
+
+// Find file in multiple locations
+QString FileManager::findFile(const QString& filename) const
+{
+    // List of possible locations to search
+    QStringList searchPaths = {
+        filename,                                    // Current directory
+        QString("../") + filename,                   // Parent directory
+        QString("../../") + filename,                // Two levels up
+        QString("../../../") + filename,             // Three levels up
+        QString("../../../../") + filename,          // Four levels up
+        QString("data/") + filename,                 // data subdirectory
+        QString("../data/") + filename,              // data in parent
+        QString("../../data/") + filename            // data two levels up
+    };
+    
+    // Search in all possible paths
+    for (const QString& path : searchPaths)
+    {
+        QFile file(path);
+        if (file.exists())
+        {
+            qDebug() << "Archivo encontrado en:" << path;
+            return path;
+        }
+    }
+    
+    qDebug() << "Archivo" << filename << "no encontrado en ninguna ubicacion.";
+    return QString(); // Return empty string if not found
 }
 
 // Validate station line format
@@ -96,18 +126,23 @@ bool FileManager::validateRouteLine(const QStringList& parts) const
 // Load stations from file
 bool FileManager::loadStations(const QString& filename, StationBST& bst, Graph& graph)
 {
-    QFile file(filename);
+    lastError.clear();
+
+    // Find the file in multiple locations
+    QString filePath = findFile(filename);
     
-    if (!file.exists())
+    if (filePath.isEmpty())
     {
-        lastError = QString("El archivo %1 no existe.").arg(filename);
+        lastError = QString("El archivo %1 no existe en ninguna ubicacion conocida.").arg(filename);
         qDebug() << "Error:" << lastError;
         return false;
     }
     
+    QFile file(filePath);
+    
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        lastError = QString("No se pudo abrir el archivo %1 para lectura.").arg(filename);
+        lastError = QString("No se pudo abrir el archivo %1 para lectura.").arg(filePath);
         qDebug() << "Error:" << lastError;
         return false;
     }
@@ -116,7 +151,7 @@ bool FileManager::loadStations(const QString& filename, StationBST& bst, Graph& 
     int lineNumber = 0;
     int stationsLoaded = 0;
     
-    qDebug() << "\nCargando estaciones desde" << filename << "...";
+    qDebug() << "\nCargando estaciones desde" << filePath << "...";
     
     while (!in.atEnd())
     {
@@ -157,25 +192,36 @@ bool FileManager::loadStations(const QString& filename, StationBST& bst, Graph& 
     
     file.close();
     
-    qDebug() << "Archivo" << filename << "cargado correctamente. (" << stationsLoaded << "estaciones)";
-    return stationsLoaded > 0;
+    qDebug() << "Archivo" << filePath << "cargado correctamente. (" << stationsLoaded << "estaciones)";
+    
+    if (stationsLoaded == 0)
+    {
+        qDebug() << "Advertencia: El archivo de estaciones esta vacio.";
+    }
+
+    return true;
 }
 
 // Load routes from file
 bool FileManager::loadRoutes(const QString& filename, Graph& graph)
 {
-    QFile file(filename);
+    lastError.clear();
+
+    // Find the file in multiple locations
+    QString filePath = findFile(filename);
     
-    if (!file.exists())
+    if (filePath.isEmpty())
     {
-        lastError = QString("El archivo %1 no existe.").arg(filename);
+        lastError = QString("El archivo %1 no existe en ninguna ubicacion conocida.").arg(filename);
         qDebug() << "Error:" << lastError;
         return false;
     }
     
+    QFile file(filePath);
+    
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        lastError = QString("No se pudo abrir el archivo %1 para lectura.").arg(filename);
+        lastError = QString("No se pudo abrir el archivo %1 para lectura.").arg(filePath);
         qDebug() << "Error:" << lastError;
         return false;
     }
@@ -184,7 +230,7 @@ bool FileManager::loadRoutes(const QString& filename, Graph& graph)
     int lineNumber = 0;
     int routesLoaded = 0;
     
-    qDebug() << "\nCargando rutas desde" << filename << "...";
+    qDebug() << "\nCargando rutas desde" << filePath << "...";
     
     while (!in.atEnd())
     {
@@ -232,24 +278,35 @@ bool FileManager::loadRoutes(const QString& filename, Graph& graph)
     
     file.close();
     
-    qDebug() << "Archivo" << filename << "cargado correctamente. (" << routesLoaded << "rutas)";
-    return routesLoaded > 0;
+    qDebug() << "Archivo" << filePath << "cargado correctamente. (" << routesLoaded << "rutas)";
+    
+    if (routesLoaded == 0)
+    {
+        qDebug() << "Advertencia: El archivo de rutas esta vacio.";
+    }
+
+    return true;
 }
 
 // Load closures from file
 bool FileManager::loadClosures(const QString& filename, Graph& graph)
 {
-    QFile file(filename);
+    lastError.clear();
+
+    // Find the file in multiple locations
+    QString filePath = findFile(filename);
     
-    if (!file.exists())
+    if (filePath.isEmpty())
     {
         qDebug() << "Advertencia: El archivo" << filename << "no existe. No se aplicaran cierres.";
         return false;
     }
     
+    QFile file(filePath);
+    
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        lastError = QString("No se pudo abrir el archivo %1 para lectura.").arg(filename);
+        lastError = QString("No se pudo abrir el archivo %1 para lectura.").arg(filePath);
         qDebug() << "Error:" << lastError;
         return false;
     }
@@ -258,7 +315,10 @@ bool FileManager::loadClosures(const QString& filename, Graph& graph)
     int lineNumber = 0;
     int closuresApplied = 0;
     
-    qDebug() << "\nCargando cierres desde" << filename << "...";
+    qDebug() << "\nCargando cierres desde" << filePath << "...";
+    
+    // Clear previous closures before loading new ones
+    graph.clearClosures();
     
     while (!in.atEnd())
     {
@@ -272,18 +332,18 @@ bool FileManager::loadClosures(const QString& filename, Graph& graph)
             continue;
         }
         
-        // Parse closure data
+        // Parse closure data: TIPO,id1[,id2]
         QStringList parts = splitLine(line, ",");
         
-        if (parts.size() == 1)
+        if (parts.size() >= 2 && parts[0].toUpper() == "ESTACION")
         {
-            // Station closure: stationId
-            int stationId = parts[0].toInt();
+            // Station closure: ESTACION,id
+            int stationId = parts[1].toInt();
             
             if (graph.containsStation(stationId))
             {
-                graph.removeStation(stationId);
-                qDebug() << "  Estacion" << stationId << "cerrada.";
+                graph.closeStation(stationId);
+                qDebug() << "  Estacion" << stationId << "bloqueada (cerrada).";
                 closuresApplied++;
             }
             else
@@ -291,38 +351,40 @@ bool FileManager::loadClosures(const QString& filename, Graph& graph)
                 qDebug() << "Advertencia: Estacion" << stationId << "no existe. Ignorando cierre...";
             }
         }
-        else if (parts.size() == 2)
+        else if (parts.size() >= 3 && parts[0].toUpper() == "RUTA")
         {
-            // Route closure: origin, destination
-            int origin = parts[0].toInt();
-            int destination = parts[1].toInt();
+            // Route closure: RUTA,origen,destino
+            int origin = parts[1].toInt();
+            int destination = parts[2].toInt();
             
-            if (graph.hasEdge(origin, destination))
+            if (graph.containsStation(origin) && graph.containsStation(destination))
             {
-                graph.removeEdge(origin, destination);
-                qDebug() << "  Ruta" << origin << "->" << destination << "cerrada.";
+                graph.closeRoute(origin, destination);
+                qDebug() << "  Ruta" << origin << "<->" << destination << "bloqueada (cerrada).";
                 closuresApplied++;
             }
             else
             {
-                qDebug() << "Advertencia: Ruta" << origin << "->" << destination << "no existe. Ignorando cierre...";
+                qDebug() << "Advertencia: Ruta" << origin << "->" << destination << "(estaciones no existen). Ignorando cierre...";
             }
         }
         else
         {
-            qDebug() << "Advertencia: Linea" << lineNumber << "invalida. Formato esperado: estacionId o origen,destino";
+            qDebug() << "Advertencia: Linea" << lineNumber << "invalida. Formato esperado: ESTACION,id o RUTA,origen,destino";
         }
     }
     
     file.close();
     
-    qDebug() << "Archivo" << filename << "procesado. (" << closuresApplied << "cierres aplicados)";
+    qDebug() << "Archivo" << filePath << "procesado. (" << closuresApplied << "cierres aplicados)";
     return closuresApplied > 0;
 }
 
 // Save stations to file
 bool FileManager::saveStations(const QString& filename, const StationBST& bst)
 {
+    lastError.clear();
+
     QFile file(filename);
     
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -359,6 +421,8 @@ bool FileManager::saveStations(const QString& filename, const StationBST& bst)
 // Save routes to file
 bool FileManager::saveRoutes(const QString& filename, const Graph& graph)
 {
+    lastError.clear();
+
     QFile file(filename);
     
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -407,9 +471,71 @@ bool FileManager::saveRoutes(const QString& filename, const Graph& graph)
     return true;
 }
 
+// Save closures to file
+bool FileManager::saveClosures(const QString& filename, const Graph& graph)
+{
+    lastError.clear();
+
+    QFile file(filename);
+    
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        lastError = QString("No se pudo abrir el archivo %1 para escritura.").arg(filename);
+        qDebug() << "Error:" << lastError;
+        return false;
+    }
+    
+    QTextStream out(&file);
+    
+    // Write header
+    out << "# Archivo de cierres - UrbanPath\n";
+    out << "# Formato: TIPO,identificador(es)\n";
+    out << "# \n";
+    out << "# ESTACION,id          -> Cierra una estacion (aparece en GRIS)\n";
+    out << "# RUTA,origen,destino  -> Cierra una ruta (aparece en ROJO)\n";
+    out << "#\n";
+    out << "# Generado: " << QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss") << "\n\n";
+    
+    // Get closed stations and routes
+    QSet<int> closedStations = graph.getClosedStations();
+    QList<QPair<int, int>> closedRoutes = graph.getClosedRoutes();
+    
+    int closureCount = 0;
+    
+    // Write closed stations
+    if (!closedStations.isEmpty())
+    {
+        out << "# Estaciones cerradas\n";
+        for (int stationId : closedStations)
+        {
+            out << "ESTACION," << stationId << "\n";
+            closureCount++;
+        }
+        out << "\n";
+    }
+    
+    // Write closed routes
+    if (!closedRoutes.isEmpty())
+    {
+        out << "# Rutas cerradas\n";
+        for (const auto& route : closedRoutes)
+        {
+            out << "RUTA," << route.first << "," << route.second << "\n";
+            closureCount++;
+        }
+    }
+    
+    file.close();
+    
+    qDebug() << "Cierres guardados en" << filename << "(" << closureCount << "cierres)";
+    return true;
+}
+
 // Export report to file
 bool FileManager::exportReport(const QString& filename, const QString& content)
 {
+    lastError.clear();
+
     QFile file(filename);
     
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))

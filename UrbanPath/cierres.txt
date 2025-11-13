@@ -1,5 +1,22 @@
 # Archivo de cierres - UrbanPath
-# Formato: estacionId (para cerrar estacion) o origen,destino (para cerrar ruta)
+# Formato: TIPO,identificador(es)
+# 
+# ESTACION,id          -> Cierra una estación (aparece en GRIS)
+# RUTA,origen,destino  -> Cierra una ruta (aparece en ROJO)
+#
+# Las estaciones y rutas cerradas NO se utilizan en los algoritmos
+# (Dijkstra, BFS, DFS, Prim, Kruskal, etc.)
+#
+# Ejemplo de cierres:
 
-# Cerrar ruta entre 2 y 4
-2, 4
+# Cerrar estación 3 (mantenimiento)
+ESTACION,3
+
+# Cerrar ruta entre estaciones 1 y 4 (construcción)
+RUTA,1,4
+
+# Cerrar ruta entre estaciones 2 y 5 (accidente)
+RUTA,2,5
+
+# Nota: Puede comentar/descomentar líneas o agregar sus propios cierres
+# siguiendo el formato indicado

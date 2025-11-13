@@ -233,6 +233,13 @@ QList<int> Graph::bfs(int startId)
     while (!queue.isEmpty())
     {
         int current = queue.dequeue();
+        
+        // Skip closed stations
+        if (isStationClosed(current))
+        {
+            continue;
+        }
+        
         result.append(current);
         
         // Visit all neighbors
@@ -242,6 +249,13 @@ QList<int> Graph::bfs(int startId)
             for (const auto& neighbor : neighbors)
             {
                 int neighborId = neighbor.first;
+                
+                // Skip closed routes and stations
+                if (isRouteClosed(current, neighborId) || isStationClosed(neighborId))
+                {
+                    continue;
+                }
+                
                 if (!visited.contains(neighborId))
                 {
                     visited.insert(neighborId);
@@ -274,6 +288,12 @@ QList<int> Graph::dfs(int startId)
 // DFS helper (recursive)
 void Graph::dfsHelper(int nodeId, QSet<int>& visited, QList<int>& result)
 {
+    // Skip closed stations
+    if (isStationClosed(nodeId))
+    {
+        return;
+    }
+    
     visited.insert(nodeId);
     result.append(nodeId);
     
@@ -283,6 +303,13 @@ void Graph::dfsHelper(int nodeId, QSet<int>& visited, QList<int>& result)
         for (const auto& neighbor : neighbors)
         {
             int neighborId = neighbor.first;
+            
+            // Skip closed routes and stations
+            if (isRouteClosed(nodeId, neighborId) || isStationClosed(neighborId))
+            {
+                continue;
+            }
+            
             if (!visited.contains(neighborId))
             {
                 dfsHelper(neighborId, visited, result);
@@ -333,6 +360,12 @@ QHash<int, double> Graph::dijkstra(int startId)
         
         visited.insert(minNode);
         
+        // Skip closed stations
+        if (isStationClosed(minNode))
+        {
+            continue;
+        }
+        
         // Update distances to neighbors
         if (adjList.contains(minNode))
         {
@@ -341,6 +374,13 @@ QHash<int, double> Graph::dijkstra(int startId)
             {
                 int neighborId = neighbor.first;
                 double edgeWeight = neighbor.second;
+                
+                // Skip closed routes and stations
+                if (isRouteClosed(minNode, neighborId) || isStationClosed(neighborId))
+                {
+                    continue;
+                }
+                
                 double newDist = distances[minNode] + edgeWeight;
                 
                 if (newDist < distances[neighborId])
@@ -352,6 +392,85 @@ QHash<int, double> Graph::dijkstra(int startId)
     }
     
     return distances;
+}
+
+// Dijkstra with path reconstruction
+QPair<QHash<int, double>, QHash<int, int>> Graph::dijkstraWithPath(int startId)
+{
+    QHash<int, double> distances;
+    QHash<int, int> predecessors;  // To reconstruct path
+    
+    if (!stations.contains(startId))
+    {
+        qDebug() << "Error: Estacion inicial" << startId << "no existe.";
+        return QPair<QHash<int, double>, QHash<int, int>>(distances, predecessors);
+    }
+    
+    // Initialize distances and predecessors
+    for (int id : stations.keys())
+    {
+        distances[id] = INF;
+        predecessors[id] = -1;  // No predecessor
+    }
+    distances[startId] = 0.0;
+    
+    QSet<int> visited;
+    
+    while (visited.size() < stations.size())
+    {
+        // Find unvisited node with minimum distance
+        int minNode = -1;
+        double minDist = INF;
+        
+        for (int id : stations.keys())
+        {
+            if (!visited.contains(id) && distances[id] < minDist)
+            {
+                minDist = distances[id];
+                minNode = id;
+            }
+        }
+        
+        if (minNode == -1)
+        {
+            break;  // No more reachable nodes
+        }
+        
+        visited.insert(minNode);
+        
+        // Skip closed stations
+        if (isStationClosed(minNode))
+        {
+            continue;
+        }
+        
+        // Update distances to neighbors
+        if (adjList.contains(minNode))
+        {
+            const QList<QPair<int, double>>& neighbors = adjList[minNode];
+            for (const auto& neighbor : neighbors)
+            {
+                int neighborId = neighbor.first;
+                double edgeWeight = neighbor.second;
+                
+                // Skip closed routes and stations
+                if (isRouteClosed(minNode, neighborId) || isStationClosed(neighborId))
+                {
+                    continue;
+                }
+                
+                double newDist = distances[minNode] + edgeWeight;
+                
+                if (newDist < distances[neighborId])
+                {
+                    distances[neighborId] = newDist;
+                    predecessors[neighborId] = minNode;  // Store predecessor
+                }
+            }
+        }
+    }
+    
+    return QPair<QHash<int, double>, QHash<int, int>>(distances, predecessors);
 }
 
 // Floyd-Warshall all-pairs shortest path
@@ -464,6 +583,12 @@ QList<QPair<int, int>> Graph::primMST()
         // Find minimum edge connecting MST to non-MST node
         for (int node : inMST)
         {
+            // Skip closed stations
+            if (isStationClosed(node))
+            {
+                continue;
+            }
+            
             if (adjList.contains(node))
             {
                 const QList<QPair<int, double>>& neighbors = adjList[node];
@@ -471,6 +596,12 @@ QList<QPair<int, int>> Graph::primMST()
                 {
                     int neighborId = neighbor.first;
                     double weight = neighbor.second;
+                    
+                    // Skip closed routes and stations
+                    if (isRouteClosed(node, neighborId) || isStationClosed(neighborId))
+                    {
+                        continue;
+                    }
                     
                     if (!inMST.contains(neighborId) && weight < minWeight)
                     {
@@ -526,6 +657,12 @@ QList<QPair<int, int>> Graph::kruskalMST()
     {
         int u = edge.from;
         int v = edge.to;
+        
+        // Skip closed routes and stations
+        if (isRouteClosed(u, v) || isStationClosed(u) || isStationClosed(v))
+        {
+            continue;
+        }
         
         // If adding this edge doesn't create a cycle
         if (!ds.connected(u, v))
@@ -592,4 +729,110 @@ void Graph::printAdjacencyList() const
         
         qDebug() << line;
     }
+}
+
+// ========== CLOSURE MANAGEMENT ==========
+
+// Check if a station is closed
+bool Graph::isStationClosed(int id) const
+{
+    return closedStations.contains(id);
+}
+
+// Check if a route is closed (checks both directions for undirected graphs)
+bool Graph::isRouteClosed(int a, int b) const
+{
+    QPair<int, int> route1(a, b);
+    QPair<int, int> route2(b, a);
+    
+    for (const auto& route : closedRoutes)
+    {
+        if (route == route1 || route == route2)
+        {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// Close a station (block it)
+void Graph::closeStation(int id)
+{
+    if (!stations.contains(id))
+    {
+        qDebug() << "Advertencia: No se puede cerrar estacion" << id << "(no existe).";
+        return;
+    }
+    
+    if (!closedStations.contains(id))
+    {
+        closedStations.insert(id);
+        qDebug() << "Estacion" << id << "cerrada (bloqueada).";
+    }
+}
+
+// Close a route (block it)
+void Graph::closeRoute(int a, int b)
+{
+    if (!stations.contains(a) || !stations.contains(b))
+    {
+        qDebug() << "Advertencia: No se puede cerrar ruta" << a << "->" << b << "(estaciones no existen).";
+        return;
+    }
+    
+    QPair<int, int> route(a, b);
+    
+    if (!isRouteClosed(a, b))
+    {
+        closedRoutes.append(route);
+        qDebug() << "Ruta" << a << "<->" << b << "cerrada (bloqueada).";
+    }
+}
+
+// Open a station (unblock it)
+void Graph::openStation(int id)
+{
+    if (closedStations.contains(id))
+    {
+        closedStations.remove(id);
+        qDebug() << "Estacion" << id << "abierta (desbloqueada).";
+    }
+}
+
+// Open a route (unblock it)
+void Graph::openRoute(int a, int b)
+{
+    QPair<int, int> route1(a, b);
+    QPair<int, int> route2(b, a);
+    
+    for (int i = 0; i < closedRoutes.size(); i++)
+    {
+        if (closedRoutes[i] == route1 || closedRoutes[i] == route2)
+        {
+            closedRoutes.removeAt(i);
+            qDebug() << "Ruta" << a << "<->" << b << "abierta (desbloqueada).";
+            return;
+        }
+    }
+}
+
+// Clear all closures
+void Graph::clearClosures()
+{
+    closedStations.clear();
+    closedRoutes.clear();
+    qDebug() << "Todos los cierres han sido eliminados.";
+}
+
+// Get list of closed stations
+QSet<int> Graph::getClosedStations() const
+{
+    return closedStations;
+}
+
+// Get list of closed routes
+QList<QPair<int, int>> Graph::getClosedRoutes() const
+{
+    return closedRoutes;
 }

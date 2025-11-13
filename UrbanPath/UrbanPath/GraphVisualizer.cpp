@@ -1,26 +1,30 @@
 #include "GraphVisualizer.h"
 #include <QDebug>
 #include <QFont>
+#include <algorithm>
 
 // Constructor
 GraphVisualizer::GraphVisualizer(QGraphicsScene* scene, QGraphicsView* view, Graph* graph)
     : QObject(nullptr), scene(scene), view(view), graph(graph), backgroundItem(nullptr)
 {
-    // Initialize default visual settings
-    nodeRadius = 8.0;
-    normalNodeColor = QColor(70, 130, 180);      // Steel blue
+    // Initialize default visual settings - will be recalculated when map loads
+    nodeRadius = 30.0;  // Default, will adjust to map size
+    normalNodeColor = QColor(57, 255, 20);       // Neon green to match connections
     highlightNodeColor = QColor(255, 69, 0);     // Red-orange
-    normalEdgeColor = QColor(150, 150, 150);     // Gray
+    normalEdgeColor = QColor(57, 255, 20);       // Neon green for strong contrast
     optimalEdgeColor = QColor(255, 0, 0);        // Red
-    normalEdgeWidth = 2.0;
-    optimalEdgeWidth = 4.0;
+    normalEdgeWidth = 6.0;   // Default, will adjust to map size
+    optimalEdgeWidth = 10.0;  // Default, will adjust to map size
     
-    // Configure view settings
+    // Configure view settings - NO SCROLLBARS, auto-fit to widget
     if (view)
     {
         view->setRenderHint(QPainter::Antialiasing);
-        view->setDragMode(QGraphicsView::ScrollHandDrag);
-        view->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+        view->setDragMode(QGraphicsView::NoDrag);  // Disable dragging
+        view->setTransformationAnchor(QGraphicsView::AnchorViewCenter);
+        view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);  // No horizontal scrollbar
+        view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);    // No vertical scrollbar
+        view->setResizeAnchor(QGraphicsView::AnchorViewCenter);
     }
     
     qDebug() << "GraphVisualizer inicializado correctamente.";
@@ -70,6 +74,23 @@ bool GraphVisualizer::eventFilter(QObject* obj, QEvent* event)
             // Convert viewport coordinates to scene coordinates
             QPointF scenePos = view->mapToScene(mouseEvent->pos());
             
+            // Ignore clicks outside map bounds to avoid drawing off-map
+            QRectF mapBounds;
+            if (backgroundItem)
+            {
+                mapBounds = backgroundItem->sceneBoundingRect();
+            }
+            else if (scene)
+            {
+                mapBounds = scene->sceneRect();
+            }
+            
+            if ((mapBounds.width() > 0 && mapBounds.height() > 0) && !mapBounds.contains(scenePos))
+            {
+                qDebug() << "Clic fuera del mapa ignorado:" << scenePos;
+                return true;
+            }
+            
             qDebug() << "Clic en mapa detectado en:" << scenePos;
             
             // Call the callback function if set
@@ -117,6 +138,22 @@ void GraphVisualizer::loadBackground(const QString& imagePath)
     // Adjust scene rect to background size
     scene->setSceneRect(background.rect());
     
+    // Calculate proportional sizes based on map dimensions
+    double mapSize = std::min(background.width(), background.height());
+    nodeRadius = mapSize * 0.02;  // 2% of smaller dimension
+    normalEdgeWidth = mapSize * 0.005;  // 0.5% of smaller dimension
+    optimalEdgeWidth = mapSize * 0.008;  // 0.8% of smaller dimension
+    
+    qDebug() << "Tamaños ajustados proporcionalmente:";
+    qDebug() << "  - Radio nodos:" << nodeRadius;
+    qDebug() << "  - Ancho aristas:" << normalEdgeWidth;
+    
+    // Auto-fit to show entire map
+    if (view)
+    {
+        view->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+    }
+    
     qDebug() << "Fondo cargado correctamente:" << imagePath;
     qDebug() << "Dimensiones:" << background.width() << "x" << background.height();
 }
@@ -148,6 +185,13 @@ void GraphVisualizer::clearScene()
     {
         backgroundItem = scene->addPixmap(savedBackground);
         backgroundItem->setZValue(-1);
+        scene->setSceneRect(savedBackground.rect());
+        
+        // Re-fit view to show entire background
+        if (view)
+        {
+            view->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
+        }
     }
     else
     {
@@ -213,7 +257,7 @@ void GraphVisualizer::drawGraph()
     qDebug() << "  - Estaciones:" << stations.size();
     qDebug() << "  - Rutas:" << edgeCount;
     
-    // Fit graph in view
+    // Auto-fit to show entire map without scrollbars
     fitInView();
 }
 
@@ -229,14 +273,22 @@ void GraphVisualizer::drawStationNode(const Station& station)
     double y = station.getY();
     int id = station.getId();
     
-    // Create node circle
+    // Check if station is closed
+    bool isClosed = graph->isStationClosed(id);
+    QColor nodeColor = isClosed ? QColor(128, 128, 128) : normalNodeColor;  // Gray if closed
+    
+    // Calculate proportional border width
+    double borderWidth = nodeRadius * 0.1;  // 10% of node radius
+    borderWidth = std::max(2.0, std::min(borderWidth, 8.0));  // Clamp between 2 and 8
+    
+    // Create node circle with prominent black border
     QGraphicsEllipseItem* node = scene->addEllipse(
         x - nodeRadius, 
         y - nodeRadius, 
         nodeRadius * 2, 
         nodeRadius * 2,
-        QPen(Qt::black, 1),
-        QBrush(normalNodeColor)
+        QPen(Qt::black, borderWidth),
+        QBrush(nodeColor)
     );
     
     node->setZValue(2);  // Above edges
@@ -249,21 +301,30 @@ void GraphVisualizer::drawStationNode(const Station& station)
     QString label = QString("%1\n%2").arg(id).arg(station.getName());
     QGraphicsTextItem* text = scene->addText(label);
     
+    // Calculate proportional font size based on node radius
+    int fontSize = static_cast<int>(nodeRadius * 0.65);  // 65% of node radius
+    fontSize = std::max(8, std::min(fontSize, 48));  // Clamp between 8 and 48
+    
     QFont font = text->font();
-    font.setPointSize(8);
+    font.setPointSize(fontSize);
     font.setBold(true);
     text->setFont(font);
     text->setDefaultTextColor(Qt::black);
     
-    // Position text next to node
-    text->setPos(x + nodeRadius + 2, y - nodeRadius);
+    // Position text next to node with proportional offset
+    double textOffset = nodeRadius * 0.15;
+    text->setPos(x + nodeRadius + textOffset, y - nodeRadius);
     text->setZValue(3);  // Above everything
 }
 
 // Draw an edge between two stations
 void GraphVisualizer::drawEdge(int fromId, int toId, double weight)
 {
-    QPen pen(normalEdgeColor, normalEdgeWidth);
+    // Check if route is closed
+    bool isClosed = graph->isRouteClosed(fromId, toId);
+    QColor edgeColor = isClosed ? QColor(255, 0, 0) : normalEdgeColor;  // Red if closed
+    
+    QPen pen(edgeColor, normalEdgeWidth);
     drawEdgeWithStyle(fromId, toId, weight, pen);
 }
 
@@ -300,8 +361,13 @@ void GraphVisualizer::drawEdgeWithStyle(int fromId, int toId, double weight, con
     QString weightText = QString::number(weight, 'f', 1);
     QGraphicsTextItem* label = scene->addText(weightText);
     
+    // Calculate proportional font size for weight labels
+    int weightFontSize = static_cast<int>(nodeRadius * 0.35);  // 35% of node radius
+    weightFontSize = std::max(6, std::min(weightFontSize, 24));  // Clamp between 6 and 24
+    
     QFont font = label->font();
-    font.setPointSize(7);
+    font.setPointSize(weightFontSize);
+    font.setBold(true);
     label->setFont(font);
     label->setDefaultTextColor(Qt::darkBlue);
     
@@ -428,8 +494,9 @@ void GraphVisualizer::fitInView()
 {
     if (view && scene)
     {
+        // Just fit without scaling down - keep native resolution
         view->fitInView(scene->sceneRect(), Qt::KeepAspectRatio);
-        view->scale(0.9, 0.9);  // Slight zoom out for margins
+        // Removed scale to keep 100% zoom (native resolution)
     }
 }
 
@@ -440,6 +507,40 @@ void GraphVisualizer::resetZoom()
     {
         view->resetTransform();
     }
+}
+
+// Check if graph is currently drawn
+bool GraphVisualizer::isGraphDrawn() const
+{
+    // Graph is considered drawn if there are node items visible
+    return !nodeItems.isEmpty();
+}
+
+// Validate whether a point lies within the current map bounds
+bool GraphVisualizer::isPointWithinMap(double x, double y) const
+{
+    if (!scene)
+    {
+        return false;
+    }
+    
+    QRectF mapBounds;
+    if (backgroundItem)
+    {
+        mapBounds = backgroundItem->sceneBoundingRect();
+    }
+    else
+    {
+        mapBounds = scene->sceneRect();
+    }
+    
+    if (mapBounds.width() <= 0 || mapBounds.height() <= 0)
+    {
+        // No background defined; treat entire scene as valid
+        return true;
+    }
+    
+    return mapBounds.contains(QPointF(x, y));
 }
 
 // Visual settings setters

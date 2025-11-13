@@ -34,6 +34,10 @@ private:
     QHash<int, Station> stations;                    // Registered stations
     bool directed;                                   // Directed or undirected graph
     
+    // Closures (blocked stations and routes)
+    QSet<int> closedStations;                        // Blocked stations
+    QList<QPair<int, int>> closedRoutes;            // Blocked routes
+    
     // Helper methods for DFS
     void dfsHelper(int nodeId, QSet<int>& visited, QList<int>& result);
     
@@ -68,6 +72,7 @@ public:
     
     // Shortest path algorithms
     QHash<int, double> dijkstra(int startId);
+    QPair<QHash<int, double>, QHash<int, int>> dijkstraWithPath(int startId);
     QHash<QPair<int, int>, double> floydWarshall();
     
     // Minimum spanning tree algorithms
@@ -80,5 +85,16 @@ public:
     
     // Get neighbors of a station
     QList<QPair<int, double>> getNeighbors(int stationId) const;
+    
+    // Closure management (blocking stations and routes)
+    bool isStationClosed(int id) const;
+    bool isRouteClosed(int a, int b) const;
+    void closeStation(int id);
+    void closeRoute(int a, int b);
+    void openStation(int id);
+    void openRoute(int a, int b);
+    void clearClosures();
+    QSet<int> getClosedStations() const;
+    QList<QPair<int, int>> getClosedRoutes() const;
 };
 

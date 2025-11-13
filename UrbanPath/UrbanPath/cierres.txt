@@ -1,0 +1,8 @@
+# Archivo de cierres - UrbanPath
+# Formato: TIPO,identificador(es)
+# 
+# ESTACION,id          -> Cierra una estacion (aparece en GRIS)
+# RUTA,origen,destino  -> Cierra una ruta (aparece en ROJO)
+#
+# Generado: 2025-11-13 05:18:47
+

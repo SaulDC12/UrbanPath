@@ -10,6 +10,12 @@
     <height>900</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>900</width>
+    <height>600</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>UrbanPath - Sistema de Transporte Urbano</string>
   </property>
@@ -26,7 +32,30 @@
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <widget class="QSplitter" name="splitterBST">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QScrollArea" name="scrollAreaBST">
+           <property name="minimumWidth">
+            <number>280</number>
+           </property>
+           <property name="maximumWidth">
+            <number>450</number>
+           </property>
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaBSTContents">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>350</width>
+              <height>600</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
            <widget class="QGroupBox" name="groupBoxStationManagement">
             <property name="title">
@@ -179,9 +208,9 @@
            </spacer>
           </item>
          </layout>
-        </item>
-        <item>
-         <widget class="QTextEdit" name="txtBSTOutput">
+           </widget>
+          </widget>
+          <widget class="QTextEdit" name="txtBSTOutput">
           <property name="readOnly">
            <bool>true</bool>
           </property>
@@ -194,6 +223,7 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;Listo para gestionar estaciones.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
          </widget>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -203,9 +233,30 @@ p, li { white-space: pre-wrap; }
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
+         <widget class="QSplitter" name="splitterGraph">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QScrollArea" name="scrollAreaOptions">
+           <property name="minimumWidth">
+            <number>280</number>
+           </property>
+           <property name="maximumWidth">
+            <number>450</number>
+           </property>
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>350</width>
+              <height>800</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
              <widget class="QGroupBox" name="groupBoxRouteManagement">
               <property name="title">
@@ -342,6 +393,71 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
             <item>
+             <widget class="QGroupBox" name="groupBoxClosures">
+              <property name="title">
+               <string>Gestion de Cierres</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_8">
+               <item>
+                <widget class="QLabel" name="lblClosureStation">
+                 <property name="text">
+                  <string>Cerrar Estacion:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_6">
+                 <item>
+                  <widget class="QComboBox" name="comboClosureStation"/>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnCloseStation">
+                   <property name="text">
+                    <string>🚧 Cerrar</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QLabel" name="lblClosureRoute">
+                 <property name="text">
+                  <string>Cerrar Ruta Seleccionada:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnCloseRoute">
+                 <property name="text">
+                  <string>🚧 Cerrar Ruta</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="Line" name="line">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnApplyClosures">
+                 <property name="text">
+                  <string>📂 Cargar desde Archivo</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnClearClosures">
+                 <property name="text">
+                  <string>✅ Quitar Todos los Cierres</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer_2">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
@@ -355,8 +471,9 @@ p, li { white-space: pre-wrap; }
              </spacer>
             </item>
            </layout>
-          </item>
-          <item>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="widgetGraphView">
            <layout class="QVBoxLayout" name="verticalLayout_7">
             <item>
              <widget class="QGraphicsView" name="graphicsViewGraph">
@@ -384,8 +501,8 @@ p, li { white-space: pre-wrap; }
              </widget>
             </item>
            </layout>
-          </item>
-         </layout>
+          </widget>
+         </widget>
         </item>
        </layout>
       </widget>
