@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+﻿#include "MainWindow.h"
 #include <QDateTime>
 #include <QDesktopServices>
 #include <QUrl>
@@ -6,6 +6,11 @@
 #include <QSet>
 #include <QStringList>
 #include <QDir>
+#include <QPushButton>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QTextEdit>
+#include <QFrame>
 #include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -13,37 +18,37 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui.setupUi(this);
     
-    // Apply dark theme stylesheet
+    // Aplicar hoja de estilos de tema oscuro
     applyDarkTheme();
     
-    // Initialize graphics scene and view
+    // Inicializar escena grafica y vista
     scene = new QGraphicsScene(this);
     ui.graphicsViewGraph->setScene(scene);
     
-    // Initialize visualizer
+    // Inicializar visualizador
     visualizer = new GraphVisualizer(scene, ui.graphicsViewGraph, &graph);
     
-    // Install click event handler for map interaction
+    // Instalar manejador de eventos de clic para interaccion del mapa
     visualizer->installClickEvent();
     
-    // Configure callback for map clicks
+    // Configurar callback para clics en el mapa
     visualizer->setClickCallback([this](double x, double y) {
-        // Generate new station ID (next available)
+        // Generar nuevo ID de estacion (siguiente disponible)
         int newId = graph.getStationCount() + 1;
         QString name = QString("Estacion %1").arg(newId);
         
-        // Create station at clicked coordinates
+        // Crear estacion en coordenadas clickeadas
         Station station(newId, name, x, y);
         bst.insert(station);
         graph.addStation(station);
         
-        // Redraw the graph to show new station
+        // Redibujar el grafo para mostrar nueva estacion
         visualizer->drawGraph();
         
-        // Update combo boxes
+        // Actualizar combo boxes
         updateComboBoxes();
         
-        // Log the action
+        // Registrar la accion
         QString log = QString("<span style='color:green'>[%1] Estacion agregada con clic: [%2] %3 (X:%4, Y:%5)</span>")
             .arg(QDateTime::currentDateTime().toString("HH:mm:ss"))
             .arg(newId)
@@ -60,10 +65,10 @@ MainWindow::MainWindow(QWidget *parent)
         qDebug() << "Estacion agregada con clic:" << newId << name << "en" << x << "," << y;
     });
     
-    // Setup connections
+    // Configurar conexiones
     setupConnections();
     
-    // Initial messages
+    // Mensajes iniciales
     logBST("=== Sistema UrbanPath Iniciado ===", "#00BFFF");
     logBST("Listo para gestionar estaciones.", "white");
     logGraph("=== Red de Transporte Lista ===", "#00BFFF");
@@ -72,10 +77,10 @@ MainWindow::MainWindow(QWidget *parent)
     
     statusBar()->showMessage("Sistema UrbanPath listo para operar - Clic en mapa para agregar estaciones");
     
-    // Try to load background image
+    // Intentar cargar imagen de fondo
     loadBackgroundImage();
     
-    // Load initial data if files exist
+    // Cargar datos iniciales si los archivos existen
     if (fileManager.fileExists("estaciones.txt"))
     {
         onActionCargarDatos();
@@ -88,19 +93,19 @@ MainWindow::~MainWindow()
     delete scene;
 }
 
-// Override showEvent to properly fit background after window is visible
+// Sobreescribir showEvent para ajustar fondo despues de que la ventana sea visible
 void MainWindow::showEvent(QShowEvent* event)
 {
     QMainWindow::showEvent(event);
     
-    // After the window is shown and has its proper size, fit the background
+    // Despues de que la ventana se muestra y tiene su tamano apropiado, ajustar el fondo
     if (visualizer && scene)
     {
         visualizer->fitInView();
     }
 }
 
-// Apply dark theme stylesheet
+// Aplicar hoja de estilos de tema oscuro
 void MainWindow::applyDarkTheme()
 {
     QString darkTheme = R"(
@@ -296,7 +301,7 @@ void MainWindow::applyDarkTheme()
     this->setStyleSheet(darkTheme);
 }
 
-// Load background image
+// Cargar imagen de fondo
 void MainWindow::loadBackgroundImage()
 {
     QStringList possiblePaths = {
@@ -323,7 +328,7 @@ void MainWindow::loadBackgroundImage()
     logGraph("Advertencia: No se encontro imagen de fondo.", "orange");
 }
 
-// Update combo boxes with station IDs
+// Actualizar combo boxes con IDs de estaciones
 void MainWindow::updateComboBoxes()
 {
     ui.comboOrigin->clear();
@@ -348,7 +353,7 @@ void MainWindow::updateComboBoxes()
     }
 }
 
-// Log message to BST console
+// Registrar mensaje en consola BST
 void MainWindow::logBST(const QString& message, const QString& color)
 {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss");
@@ -360,7 +365,7 @@ void MainWindow::logBST(const QString& message, const QString& color)
     ui.txtBSTOutput->append(formattedMessage);
 }
 
-// Log message to Graph console
+// Registrar mensaje en consola de Grafo
 void MainWindow::logGraph(const QString& message, const QString& color)
 {
     QString timestamp = QDateTime::currentDateTime().toString("HH:mm:ss");
@@ -372,19 +377,19 @@ void MainWindow::logGraph(const QString& message, const QString& color)
     ui.txtGraphOutput->append(formattedMessage);
 }
 
-// Show info message
+// Mostrar mensaje informativo
 void MainWindow::showInfoMessage(const QString& title, const QString& message)
 {
     QMessageBox::information(this, title, message);
 }
 
-// Show error message
+// Mostrar mensaje de error
 void MainWindow::showErrorMessage(const QString& title, const QString& message)
 {
     QMessageBox::critical(this, title, message);
 }
 
-// Confirm action
+// Confirmar accion
 bool MainWindow::confirmAction(const QString& title, const QString& message)
 {
     return QMessageBox::question(this, title, message,
@@ -393,7 +398,7 @@ bool MainWindow::confirmAction(const QString& title, const QString& message)
 
 // ====== BST TAB SLOTS ======
 
-// Slot: Add Station
+// Slot: Agregar Estacion
 void MainWindow::onAddStationClicked()
 {
     int id = ui.txtStationID->text().toInt();
@@ -420,7 +425,7 @@ void MainWindow::onAddStationClicked()
     logBST(QString("Estacion agregada: [%1] %2 (X:%3, Y:%4)")
         .arg(id).arg(name).arg(x).arg(y), "green");
     
-    // Mark data as loaded when adding stations manually
+    // Marcar datos como cargados al agregar estaciones manualmente
     dataLoaded = true;
     
     updateComboBoxes();
@@ -428,7 +433,7 @@ void MainWindow::onAddStationClicked()
     statusBar()->showMessage(QString("Estacion %1 agregada correctamente").arg(id), 3000);
 }
 
-// Slot: Remove Station
+// Slot: Eliminar Estacion
 void MainWindow::onRemoveStationClicked()
 {
     int id = ui.txtStationID->text().toInt();
@@ -454,7 +459,7 @@ void MainWindow::onRemoveStationClicked()
     }
 }
 
-// Slot: Search Station
+// Slot: Buscar Estacion
 void MainWindow::onSearchStationClicked()
 {
     int id = ui.txtStationID->text().toInt();
@@ -485,7 +490,7 @@ void MainWindow::onSearchStationClicked()
     }
 }
 
-// Slot: Clear Station Fields
+// Slot: Limpiar Campos de Estacion
 void MainWindow::onClearStationClicked()
 {
     ui.txtStationID->clear();
@@ -495,7 +500,7 @@ void MainWindow::onClearStationClicked()
     ui.txtStationID->setFocus();
 }
 
-// Slot: In-Order Traversal
+// Slot: Recorrido En Orden
 void MainWindow::onInOrderClicked()
 {
     QList<Station> stations = bst.inOrder();
@@ -509,7 +514,7 @@ void MainWindow::onInOrderClicked()
     logBST(QString("Total: %1 estaciones").arg(stations.size()), "green");
 }
 
-// Slot: Pre-Order Traversal
+// Slot: Recorrido Pre Orden
 void MainWindow::onPreOrderClicked()
 {
     QList<Station> stations = bst.preOrder();
@@ -523,7 +528,7 @@ void MainWindow::onPreOrderClicked()
     logBST(QString("Total: %1 estaciones").arg(stations.size()), "green");
 }
 
-// Slot: Post-Order Traversal
+// Slot: Recorrido Post Orden
 void MainWindow::onPostOrderClicked()
 {
     QList<Station> stations = bst.postOrder();
@@ -537,7 +542,7 @@ void MainWindow::onPostOrderClicked()
     logBST(QString("Total: %1 estaciones").arg(stations.size()), "green");
 }
 
-// Slot: Export Traversals
+// Slot: Exportar Recorridos
 void MainWindow::onExportTraversalsClicked()
 {
     bool success = reportGenerator.generateTraversalReport("reporte_recorridos.txt", bst);
@@ -557,7 +562,7 @@ void MainWindow::onExportTraversalsClicked()
 
 // ====== GRAPH TAB SLOTS ======
 
-// Slot: Add Route
+// Slot: Agregar Ruta
 void MainWindow::onAddRouteClicked()
 {
     if (ui.comboOrigin->count() == 0 || ui.comboDestination->count() == 0)
@@ -589,7 +594,7 @@ void MainWindow::onAddRouteClicked()
     statusBar()->showMessage(QString("Ruta %1-%2 agregada").arg(origin).arg(dest), 3000);
 }
 
-// Slot: Remove Route
+// Slot: Eliminar Ruta
 void MainWindow::onRemoveRouteClicked()
 {
     if (ui.comboOrigin->count() == 0 || ui.comboDestination->count() == 0)
@@ -613,7 +618,7 @@ void MainWindow::onRemoveRouteClicked()
     statusBar()->showMessage(QString("Ruta %1-%2 eliminada").arg(origin).arg(dest), 3000);
 }
 
-// Slot: Shortest Path (Dijkstra)
+// Slot: Camino Mas Corto (Dijkstra)
 void MainWindow::onShortestPathClicked()
 {
     if (ui.comboOrigin->count() == 0 || ui.comboDestination->count() == 0)
@@ -622,7 +627,7 @@ void MainWindow::onShortestPathClicked()
         return;
     }
     
-    // Check if graph is drawn
+    // Verificar si el grafo esta dibujado
     if (!visualizer->isGraphDrawn())
     {
         showErrorMessage("Error", 
@@ -641,12 +646,12 @@ void MainWindow::onShortestPathClicked()
         return;
     }
     
-    // Redraw graph to clear previous optimal route highlighting
+    // Redibujar grafo para limpiar resaltado de ruta optima previa
     visualizer->drawGraph();
     
     logGraph(QString("Calculando ruta mas corta de %1 a %2...").arg(origin).arg(dest), "#00BFFF");
     
-    // Get distances and predecessors
+    // Obtener distancias y predecesores
     QPair<QHash<int, double>, QHash<int, int>> result = graph.dijkstraWithPath(origin);
     QHash<int, double> distances = result.first;
     QHash<int, int> predecessors = result.second;
@@ -658,16 +663,16 @@ void MainWindow::onShortestPathClicked()
         return;
     }
     
-    // Reconstruct the complete path
+    // Reconstruir el camino completo
     QList<int> route;
     int current = dest;
     
     while (current != -1)
     {
-        route.prepend(current);  // Add to front of list
+        route.prepend(current);  // Agregar al inicio de la lista
         current = predecessors[current];
         
-        // Break if we've reached the origin or if there's no predecessor
+        // Romper si hemos alcanzado el origen o si no hay predecesor
         if (current == origin)
         {
             route.prepend(origin);
@@ -675,10 +680,10 @@ void MainWindow::onShortestPathClicked()
         }
     }
     
-    // Draw the optimal route
+    // Dibujar la ruta optima
     visualizer->drawOptimalRoute(route);
     
-    // Log the complete path
+    // Registrar el camino completo
     QString pathStr = "Ruta: ";
     for (int i = 0; i < route.size(); i++)
     {
@@ -695,8 +700,8 @@ void MainWindow::onShortestPathClicked()
     reportGenerator.generateRouteReport("data/reportes/reporte_ruta_corta.txt", route, graph);
     statusBar()->showMessage(QString("Distancia: %1 | %2 estaciones").arg(distances[dest], 0, 'f', 1).arg(route.size()), 5000);
     
-    // Show results in popup window
-    QString resultMsg = QString("Ruta más corta encontrada (Dijkstra)\n\n%1\n\nDistancia total: %2\nEstaciones: %3")
+    // Mostrar resultados en ventana popup
+    QString resultMsg = QString("Ruta mas corta encontrada (Dijkstra)\n\n%1\n\nDistancia total: %2\nEstaciones: %3")
         .arg(pathStr)
         .arg(distances[dest], 0, 'f', 1)
         .arg(route.size());
@@ -721,16 +726,16 @@ void MainWindow::onFloydClicked()
     
     statusBar()->showMessage("Floyd-Warshall ejecutado correctamente", 3000);
     
-    // Show results in popup window
+    // Mostrar resultados en ventana popup
     QString resultMsg = QString("Algoritmo de Floyd-Warshall completado exitosamente.\n\n"
                                 "Pares de distancias calculadas: %1\n\n"
-                                "Este algoritmo calcula las distancias más cortas\n"
+                                "Este algoritmo calcula las distancias mas cortas\n"
                                 "entre todos los pares de estaciones.")
         .arg(allPaths.size());
     showInfoMessage("Resultado - Floyd-Warshall", resultMsg);
 }
 
-// Slot: Prim MST
+// Slot: MST de Prim
 void MainWindow::onPrimMSTClicked()
 {
     if (ui.comboOrigin->count() == 0)
@@ -758,22 +763,22 @@ void MainWindow::onPrimMSTClicked()
         totalWeight += weight;
         logGraph(QString("  %1 <-> %2: %3")
             .arg(edge.first).arg(edge.second).arg(weight, 0, 'f', 1), "black");
-        edgesStr += QString("  %1 ↔ %2: %3\n")
+        edgesStr += QString("  %1  <->  %2: %3\n")
             .arg(edge.first).arg(edge.second).arg(weight, 0, 'f', 1);
     }
     
     logGraph(QString("Peso total del MST: %1").arg(totalWeight, 0, 'f', 1), "green");
     statusBar()->showMessage(QString("MST (Prim) - Peso: %1").arg(totalWeight, 0, 'f', 1), 5000);
     
-    // Show results in popup window
-    QString resultMsg = QString("Árbol de Expansión Mínima (Prim)\n\n%1\nPeso total: %2\nAristas: %3")
+    // Mostrar resultados en ventana popup
+    QString resultMsg = QString("arbol de Expansion Minima (Prim)\n\n%1\nPeso total: %2\nAristas: %3")
         .arg(edgesStr)
         .arg(totalWeight, 0, 'f', 1)
         .arg(mst.size());
     showInfoMessage("Resultado - MST (Prim)", resultMsg);
 }
 
-// Slot: Kruskal MST
+// Slot: MST de Kruskal
 void MainWindow::onKruskalMSTClicked()
 {
     if (ui.comboOrigin->count() == 0)
@@ -801,7 +806,7 @@ void MainWindow::onKruskalMSTClicked()
         totalWeight += weight;
         logGraph(QString("  %1 <-> %2: %3")
             .arg(edge.first).arg(edge.second).arg(weight, 0, 'f', 1), "black");
-        edgesStr += QString("  %1 ↔ %2: %3\n")
+        edgesStr += QString("  %1  <->  %2: %3\n")
             .arg(edge.first).arg(edge.second).arg(weight, 0, 'f', 1);
     }
     
@@ -810,8 +815,8 @@ void MainWindow::onKruskalMSTClicked()
     reportGenerator.generateMSTReport("reporte_mst.txt", graph);
     statusBar()->showMessage(QString("MST (Kruskal) - Peso: %1").arg(totalWeight, 0, 'f', 1), 5000);
     
-    // Show results in popup window
-    QString resultMsg = QString("Árbol de Expansión Mínima (Kruskal)\n\n%1\nPeso total: %2\nAristas: %3")
+    // Mostrar resultados en ventana popup
+    QString resultMsg = QString("arbol de Expansion Minima (Kruskal)\n\n%1\nPeso total: %2\nAristas: %3")
         .arg(edgesStr)
         .arg(totalWeight, 0, 'f', 1)
         .arg(mst.size());
@@ -843,8 +848,8 @@ void MainWindow::onBFSClicked()
     logGraph(result, "green");
     statusBar()->showMessage(QString("BFS: %1 estaciones alcanzadas").arg(bfsResult.size()), 3000);
     
-    // Show results in popup window
-    QString resultMsg = QString("Recorrido en Anchura (BFS)\n\nOrigen: Estación %1\n\n%2\n\nEstaciones alcanzadas: %3")
+    // Mostrar resultados en ventana popup
+    QString resultMsg = QString("Recorrido en Anchura (BFS)\n\nOrigen: Estacion %1\n\n%2\n\nEstaciones alcanzadas: %3")
         .arg(origin)
         .arg(result)
         .arg(bfsResult.size());
@@ -876,15 +881,15 @@ void MainWindow::onDFSClicked()
     logGraph(result, "green");
     statusBar()->showMessage(QString("DFS: %1 estaciones alcanzadas").arg(dfsResult.size()), 3000);
     
-    // Show results in popup window
-    QString resultMsg = QString("Recorrido en Profundidad (DFS)\n\nOrigen: Estación %1\n\n%2\n\nEstaciones alcanzadas: %3")
+    // Mostrar resultados en ventana popup
+    QString resultMsg = QString("Recorrido en Profundidad (DFS)\n\nOrigen: Estacion %1\n\n%2\n\nEstaciones alcanzadas: %3")
         .arg(origin)
         .arg(result)
         .arg(dfsResult.size());
     showInfoMessage("Resultado - DFS", resultMsg);
 }
 
-// Slot: Draw Graph
+// Slot: Dibujar Grafo
 void MainWindow::onDrawGraphClicked()
 {
     logGraph("Dibujando grafo...", "#00BFFF");
@@ -893,7 +898,7 @@ void MainWindow::onDrawGraphClicked()
     statusBar()->showMessage("Grafo visualizado", 2000);
 }
 
-// Slot: Clear Graph
+// Slot: Limpiar Grafo
 void MainWindow::onClearGraphClicked()
 {
     logGraph("Limpiando vista del grafo...", "#00BFFF");
@@ -904,7 +909,7 @@ void MainWindow::onClearGraphClicked()
 
 // ====== CLOSURE MANAGEMENT ======
 
-// Slot: Close Station Manually
+// Slot: Cerrar Estacion Manualmente
 void MainWindow::onCloseStationClicked()
 {
     if (ui.comboClosureStation->count() == 0)
@@ -918,14 +923,14 @@ void MainWindow::onCloseStationClicked()
     
     if (graph.isStationClosed(stationId))
     {
-        showInfoMessage("Información", 
-            QString("La estación %1 ya está cerrada.").arg(stationName));
+        showInfoMessage("Informacion", 
+            QString("La estacion %1 ya esta cerrada.").arg(stationName));
         return;
     }
     
-    if (!confirmAction("Cerrar Estación", 
-        QString("¿Está seguro de que desea CERRAR la estación?\n\n%1\n\n"
-                "La estación se mostrará en GRIS y los algoritmos la ignorarán.")
+    if (!confirmAction("Cerrar Estacion", 
+        QString("Esta seguro de que desea CERRAR la estacion?\n\n%1\n\n"
+                "La estacion se mostrara en GRIS y los algoritmos la ignoraran.")
         .arg(stationName)))
     {
         return;
@@ -933,24 +938,24 @@ void MainWindow::onCloseStationClicked()
     
     graph.closeStation(stationId);
     
-    logGraph(QString("🚧 Estación cerrada manualmente: %1").arg(stationName), "orange");
+    logGraph(QString(" Estacion cerrada manualmente: %1").arg(stationName), "orange");
     
-    // Redraw to show closure
+    // Redibujar para mostrar cierre
     if (visualizer)
     {
         visualizer->drawGraph();
     }
     
-    statusBar()->showMessage(QString("Estación %1 cerrada").arg(stationId), 3000);
-    showInfoMessage("Estación Cerrada", 
-        QString("La estación %1 ha sido cerrada.\n\n"
-                "• Aparecerá en GRIS en el mapa\n"
-                "• Los algoritmos la ignorarán\n\n"
+    statusBar()->showMessage(QString("Estacion %1 cerrada").arg(stationId), 3000);
+    showInfoMessage("Estacion Cerrada", 
+        QString("La estacion %1 ha sido cerrada.\n\n"
+                "• Aparecera en GRIS en el mapa\n"
+                "• Los algoritmos la ignoraran\n\n"
                 "Use 'Quitar Todos los Cierres' para reactivarla.")
         .arg(stationName));
 }
 
-// Slot: Close Route Manually
+// Slot: Cerrar Ruta Manualmente
 void MainWindow::onCloseRouteClicked()
 {
     if (ui.comboClosureOrigin->count() == 0 || ui.comboClosureDest->count() == 0)
@@ -977,15 +982,15 @@ void MainWindow::onCloseRouteClicked()
     
     if (graph.isRouteClosed(origin, dest))
     {
-        showInfoMessage("Información", 
-            QString("La ruta entre %1 y %2 ya está cerrada.").arg(origin).arg(dest));
+        showInfoMessage("Informacion", 
+            QString("La ruta entre %1 y %2 ya esta cerrada.").arg(origin).arg(dest));
         return;
     }
     
     if (!confirmAction("Cerrar Ruta", 
-        QString("¿Está seguro de que desea CERRAR la ruta?\n\n"
-                "Estación %1 ↔ Estación %2\n\n"
-                "La ruta se mostrará en ROJO y los algoritmos la ignorarán.")
+        QString("Esta seguro de que desea CERRAR la ruta?\n\n"
+                "Estacion %1  <->  Estacion %2\n\n"
+                "La ruta se mostrara en ROJO y los algoritmos la ignoraran.")
         .arg(origin).arg(dest)))
     {
         return;
@@ -993,9 +998,9 @@ void MainWindow::onCloseRouteClicked()
     
     graph.closeRoute(origin, dest);
     
-    logGraph(QString("🚧 Ruta cerrada manualmente: %1 ↔ %2").arg(origin).arg(dest), "orange");
+    logGraph(QString(" Ruta cerrada manualmente: %1  <->  %2").arg(origin).arg(dest), "orange");
     
-    // Redraw to show closure
+    // Redibujar para mostrar cierre
     if (visualizer)
     {
         visualizer->drawGraph();
@@ -1004,29 +1009,29 @@ void MainWindow::onCloseRouteClicked()
     statusBar()->showMessage(QString("Ruta %1-%2 cerrada").arg(origin).arg(dest), 3000);
     showInfoMessage("Ruta Cerrada", 
         QString("La ruta entre estaciones %1 y %2 ha sido cerrada.\n\n"
-                "• Aparecerá en ROJO en el mapa\n"
-                "• Los algoritmos la ignorarán\n\n"
+                "• Aparecera en ROJO en el mapa\n"
+                "• Los algoritmos la ignoraran\n\n"
                 "Use 'Quitar Todos los Cierres' para reactivarla.")
         .arg(origin).arg(dest));
 }
 
-// Slot: Apply Closures from File
+// Slot: Aplicar Cierres desde Archivo
 void MainWindow::onApplyClosuresClicked()
 {
     logGraph("Aplicando cierres y accidentes desde archivo...", "#00BFFF");
     statusBar()->showMessage("Aplicando cierres y accidentes...");
     
-    // Check if there are stations to apply closures to
+    // Verificar si hay estaciones para aplicar cierres
     if (graph.getStationCount() == 0)
     {
         showErrorMessage("Error", "No hay estaciones. Cargue o agregue estaciones primero.");
         return;
     }
     
-    // Load closures
+    // Cargar cierres
     bool closuresLoaded = fileManager.loadClosures("data/datos/cierres.txt", graph);
     
-    // Load accidents
+    // Cargar accidentes
     bool accidentsLoaded = fileManager.loadAccidents(graph, "data/datos/accidentes.txt");
     
     if (closuresLoaded || accidentsLoaded)
@@ -1037,18 +1042,18 @@ void MainWindow::onApplyClosuresClicked()
         
         if (closuresLoaded)
         {
-            logGraph(QString("🚧 Cierres aplicados: %1 estaciones, %2 rutas bloqueadas")
+            logGraph(QString(" Cierres aplicados: %1 estaciones, %2 rutas bloqueadas")
                 .arg(closedStations.size())
                 .arg(closedRoutes.size()), "orange");
         }
         
         if (accidentsLoaded)
         {
-            logGraph(QString("🚧 Accidentes aplicados: %1 rutas con peso incrementado")
+            logGraph(QString(" Accidentes aplicados: %1 rutas con peso incrementado")
                 .arg(affectedRoutes), "#FFD700");
         }
         
-        // Redraw graph to show closures and accidents visually
+        // Redibujar grafo para mostrar cierres y accidentes visualmente
         if (visualizer)
         {
             visualizer->drawGraph();
@@ -1086,10 +1091,10 @@ void MainWindow::onApplyClosuresClicked()
     }
 }
 
-// Slot: Clear Closures Only
+// Slot: Limpiar Solo Cierres
 void MainWindow::onClearClosuresClicked()
 {
-    // Check if there are stations in the graph
+    // Verificar si hay estaciones en el grafo
     if (graph.getStationCount() == 0)
     {
         showErrorMessage("Error", "No hay estaciones cargadas.");
@@ -1097,20 +1102,20 @@ void MainWindow::onClearClosuresClicked()
     }
     
     if (!confirmAction("Limpiar Cierres", 
-        "¿Está seguro de que desea eliminar todos los cierres?\n\n"
-        "Esto restaurará:\n"
+        "Esta seguro de que desea eliminar todos los cierres?\n\n"
+        "Esto restaurara:\n"
         "• Todas las estaciones bloqueadas\n"
         "• Todas las rutas cerradas\n\n"
-        "NOTA: Los accidentes NO se eliminarán."))
+        "NOTA: Los accidentes NO se eliminaran."))
     {
         return;
     }
     
     graph.clearClosures();
     
-    logGraph("✅ Todos los cierres han sido eliminados.", "green");
+    logGraph(" Todos los cierres han sido eliminados.", "green");
     
-    // Redraw graph to show all routes/stations active again
+    // Redibujar grafo para mostrar todas las rutas y estaciones activas nuevamente
     if (visualizer)
     {
         visualizer->drawGraph();
@@ -1126,18 +1131,18 @@ void MainWindow::onClearClosuresClicked()
 
 // ====== MENU ACTIONS ======
 
-// Menu Action: Cargar Datos
+// Accion del Menu: Cargar Datos
 void MainWindow::onActionCargarDatos()
 {
     logBST("Cargando datos del sistema...", "#00BFFF");
     logGraph("Cargando datos del sistema...", "#00BFFF");
     statusBar()->showMessage("Cargando datos...");
     
-    // Clear existing data
+    // Limpiar datos existentes
     graph.clear();
     bst.clear();
     
-    // Load stations
+    // Cargar estaciones
     bool stationsLoaded = fileManager.loadStations("data/datos/estaciones.txt", bst, graph);
     
     if (!stationsLoaded)
@@ -1154,7 +1159,7 @@ void MainWindow::onActionCargarDatos()
         return;
     }
     
-    // Load routes
+    // Cargar rutas
     bool routesLoaded = fileManager.loadRoutes("data/datos/rutas.txt", graph);
     
     dataLoaded = true;
@@ -1170,7 +1175,7 @@ void MainWindow::onActionCargarDatos()
         logGraph(QString("Datos cargados: %1 estaciones.").arg(graph.getStationCount()), "green");
     }
     
-    // Count unique routes loaded (avoid duplicates in undirected graph)
+    // Contar rutas unicas cargadas evitar duplicados en grafo no dirigido
     QSet<QPair<int, int>> countedEdges;
     int routeCount = 0;
     QList<Station> loadedStations = graph.getAllStations();
@@ -1208,7 +1213,7 @@ void MainWindow::onActionCargarDatos()
         logGraph(QString("Rutas cargadas: %1").arg(routeCount), "green");
     }
     
-    // Load closures automatically if file exists
+    // Cargar cierres automatically if file exists
     bool closuresLoaded = false;
     if (fileManager.fileExists("data/datos/cierres.txt"))
     {
@@ -1222,14 +1227,14 @@ void MainWindow::onActionCargarDatos()
             
             if (totalClosures > 0)
             {
-                logGraph(QString("🚧 Cierres cargados: %1 estaciones, %2 rutas cerradas")
+                logGraph(QString(" Cierres cargados: %1 estaciones, %2 rutas cerradas")
                     .arg(closedStations.size())
                     .arg(closedRoutes.size()), "orange");
             }
         }
     }
     
-    // Load accidents automatically if file exists
+    // Cargar accidentes automatically if file exists
     bool accidentsLoaded = false;
     if (fileManager.fileExists("data/datos/accidentes.txt"))
     {
@@ -1241,7 +1246,7 @@ void MainWindow::onActionCargarDatos()
             
             if (totalAccidents > 0)
             {
-                logGraph(QString("🚧 Accidentes cargados: %1 rutas con peso incrementado")
+                logGraph(QString(" Accidentes cargados: %1 rutas con peso incrementado")
                     .arg(totalAccidents), "#FFD700");
             }
         }
@@ -1259,14 +1264,14 @@ void MainWindow::onActionCargarDatos()
     
     if (totalClosures > 0)
     {
-        closureInfo = QString("\n\n🚧 Cierres activos:\n• Estaciones cerradas: %1\n• Rutas cerradas: %2")
+        closureInfo = QString("\n\n Cierres activos:\n• Estaciones cerradas: %1\n• Rutas cerradas: %2")
             .arg(closedStations.size())
             .arg(closedRoutes.size());
     }
     
     if (totalAccidents > 0)
     {
-        closureInfo += QString("\n\n🚧 Accidentes activos:\n• Rutas afectadas: %1")
+        closureInfo += QString("\n\n Accidentes activos:\n• Rutas afectadas: %1")
             .arg(totalAccidents);
     }
     
@@ -1277,17 +1282,17 @@ void MainWindow::onActionCargarDatos()
         .arg(closureInfo));
 }
 
-// Menu Action: Guardar Datos
+// Accion del Menu: Guardar Datos
 void MainWindow::onActionGuardarDatos()
 {
-    // Check if there's actual data to save (stations or routes)
+    // Verificar si hay datos reales para guardar (estaciones o rutas)
     if (bst.isEmpty() && graph.getStationCount() == 0)
     {
         showInfoMessage("Informacion", "No hay datos para guardar.");
         return;
     }
     
-    // Create data directories if they don't exist
+    // Crear directorios de datos si no existen
     QDir dir;
     if (!dir.exists("data"))
     {
@@ -1339,12 +1344,31 @@ void MainWindow::onActionGuardarDatos()
         }
         
         statusBar()->showMessage("Datos guardados correctamente", 3000);
-        showInfoMessage("Guardado Exitoso", 
-            QString("Los datos se han guardado correctamente en data/datos/:\n\n"
+        
+        // Obtener ruta absoluta
+        QString absolutePath = QDir::current().absoluteFilePath("data/datos");
+        
+        // Mostrar mensaje con opcion para abrir carpeta
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle("Guardado Exitoso");
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setText(QString("Los datos se han guardado correctamente:\n\n"
                     "• Estaciones: estaciones.txt\n"
                     "• Rutas: rutas.txt\n"
                     "• Cierres: cierres.txt (%1)\n"
-                    "• Accidentes: accidentes.txt (%2)").arg(totalClosures).arg(totalAccidents));
+                    "• Accidentes: accidentes.txt (%2)\n\n"
+                    "Ruta completa:\n%3").arg(totalClosures).arg(totalAccidents).arg(absolutePath));
+        
+        QPushButton* openFolderBtn = msgBox.addButton("Abrir Carpeta", QMessageBox::ActionRole);
+        msgBox.addButton("Cerrar", QMessageBox::AcceptRole);
+        
+        msgBox.exec();
+        
+        // Si el usuario hizo clic en Abrir Carpeta
+        if (msgBox.clickedButton() == openFolderBtn)
+        {
+            QDesktopServices::openUrl(QUrl::fromLocalFile(absolutePath));
+        }
     }
     else
     {
@@ -1370,7 +1394,7 @@ void MainWindow::onActionGuardarDatos()
     }
 }
 
-// Menu Action: Salir
+// Accion del Menu: Salir
 void MainWindow::onActionSalir()
 {
     if (confirmAction("Salir", "Esta seguro de que desea salir de UrbanPath?"))
@@ -1382,14 +1406,14 @@ void MainWindow::onActionSalir()
 // Menu Action: Generar Reportes
 void MainWindow::onActionGenerarReportes()
 {
-    // Check if there's data to generate reports from
+    // Verificar si hay datos para generar reportes
     if (bst.isEmpty() && graph.getStationCount() == 0)
     {
         showInfoMessage("Informacion", "No hay datos para generar reportes.");
         return;
     }
-    
-    // Create reports directory if it doesn't exist
+
+    // Crear directorio de reportes si no existe
     QDir dir;
     if (!dir.exists("data"))
     {
@@ -1416,13 +1440,31 @@ void MainWindow::onActionGenerarReportes()
     logGraph(QString("Reportes generados exitosamente en data/reportes/ (%1/5).").arg(successCount), "green");
     statusBar()->showMessage("Reportes generados en data/reportes/", 3000);
     
-    showInfoMessage("Reportes Generados",
-        QString("Se han generado %1 reportes del sistema en data/reportes/:\n\n"
+    // Obtener ruta absoluta
+    QString absolutePath = QDir::current().absoluteFilePath("data/reportes");
+    
+    // Mostrar mensaje con opcion para abrir carpeta
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Reportes Generados");
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setText(QString("Se han generado %1 reportes del sistema:\n\n"
                 "• reporte_estadisticas.txt\n"
                 "• reporte_mst.txt\n"
                 "• reporte_conectividad.txt\n"
                 "• reporte_recorridos.txt\n"
-                "• reporte_accidentes.txt").arg(successCount));
+                "• reporte_accidentes.txt\n\n"
+                "Ruta completa:\n%2").arg(successCount).arg(absolutePath));
+    
+    QPushButton* openFolderBtn = msgBox.addButton("Abrir Carpeta", QMessageBox::ActionRole);
+    msgBox.addButton("Cerrar", QMessageBox::AcceptRole);
+    
+    msgBox.exec();
+    
+    // Si el usuario hizo clic en Abrir Carpeta
+    if (msgBox.clickedButton() == openFolderBtn)
+    {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(absolutePath));
+    }
 }
 
 // Menu Action: Ver Ultimo Reporte
@@ -1444,33 +1486,104 @@ void MainWindow::onActionVerUltimoReporte()
 // Menu Action: Acerca De
 void MainWindow::onActionAcercaDe()
 {
-    QMessageBox::about(this, "Acerca de UrbanPath",
-        "<h2>UrbanPath - Sistema de Transporte Urbano</h2>"
+    QDialog aboutDialog(this);
+    aboutDialog.setWindowTitle("Acerca de UrbanPath");
+    aboutDialog.setMinimumSize(600, 400);
+    aboutDialog.resize(700, 550);
+    
+    QVBoxLayout* layout = new QVBoxLayout(&aboutDialog);
+    
+    // Create scrollable text area
+    QTextEdit* textEdit = new QTextEdit(&aboutDialog);
+    textEdit->setReadOnly(true);
+    textEdit->setFrameShape(QFrame::NoFrame);
+    
+    QString aboutText = 
+        "<h2 style='color: #00CC88;'>UrbanPath - Sistema de Transporte Urbano</h2>"
         "<p><b>Version:</b> 1.0</p>"
         "<p><b>Proyecto:</b> Estructura de Datos - Proyecto #2</p>"
         "<hr>"
-        "<p><b>Descripcion:</b></p>"
-        "<p>Sistema de gestion de transporte urbano que utiliza "
-        "arboles binarios de busqueda y grafos ponderados.</p>"
+        
+        "<h3>Desarrollador</h3>"
+        "<p><b>Saul Chinchilla Badilla</b></p>"
+        "<p>Universidad Nacional de Costa Rica (UNA)</p>"
         "<hr>"
-        "<p><b>Algoritmos Implementados:</b></p>"
-        "<ul>"
+        
+        "<h3>Descripcion</h3>"
+        "<p>Sistema de gestion de transporte urbano que utiliza "
+        "arboles binarios de busqueda y grafos ponderados para modelar "
+        "una red de estaciones y rutas.</p>"
+        "<hr>"
+        
+        "<h3>Instrucciones Basicas</h3>"
+        "<p><b>1. Gestion de Datos:</b></p>"
+        "<ul style='margin-left: 20px;'>"
+        "<li><b>Archivo  ->  Cargar Datos:</b> Carga estaciones y rutas desde archivos</li>"
+        "<li><b>Archivo  ->  Guardar Datos:</b> Guarda todos los cambios realizados</li>"
+        "<li><b>Clic en el mapa:</b> Crea una nueva estacion en esa ubicacion</li>"
+        "</ul>"
+        
+        "<p><b>2. Visualizacion:</b></p>"
+        "<ul style='margin-left: 20px;'>"
+        "<li><b>Dibujar Grafo:</b> Visualiza la red completa en el mapa</li>"
+        "<li><b>Verde:</b> Rutas normales | <b>Rojo:</b> Rutas cerradas</li>"
+        "<li><b>Naranja:</b> Rutas con accidentes | <b>Cyan:</b> Ruta optima</li>"
+        "</ul>"
+        
+        "<p><b>3. Algoritmos:</b></p>"
+        "<ul style='margin-left: 20px;'>"
+        "<li><b>Ruta Mas Corta:</b> Encuentra el camino optimo entre dos estaciones</li>"
+        "<li><b>MST (Prim/Kruskal):</b> arbol de expansion minima de la red</li>"
+        "<li><b>BFS/DFS:</b> Recorridos en anchura y profundidad</li>"
+        "</ul>"
+        
+        "<p><b>4. Gestion de Cierres y Accidentes:</b></p>"
+        "<ul style='margin-left: 20px;'>"
+        "<li><b>Cerrar Estacion/Ruta:</b> Simula bloqueos en la red</li>"
+        "<li><b>Agregar Accidente:</b> Incrementa el peso de una ruta</li>"
+        "<li><b>Cargar desde archivo:</b> Aplica multiples cierres/accidentes</li>"
+        "</ul>"
+        
+        "<p><b>5. Reportes:</b></p>"
+        "<ul style='margin-left: 20px;'>"
+        "<li><b>Generar Reportes:</b> Crea archivos .txt con estadisticas completas</li>"
+        "<li><b>Ver ultimo Reporte:</b> Abre el reporte de estadisticas</li>"
+        "</ul>"
+        "<hr>"
+        
+        "<h3>Algoritmos Implementados</h3>"
+        "<ul style='margin-left: 20px;'>"
         "<li>Arbol Binario de Busqueda (BST)</li>"
-        "<li>BFS y DFS</li>"
         "<li>Dijkstra (Ruta mas corta)</li>"
-        "<li>Floyd-Warshall</li>"
+        "<li>Floyd-Warshall (Todas las rutas)</li>"
         "<li>Prim y Kruskal (MST)</li>"
+        "<li>BFS y DFS (Recorridos)</li>"
         "<li>Union-Find (Disjoint Set)</li>"
         "</ul>"
         "<hr>"
-        "<p><b>Tecnologias:</b> C++14, Qt 6.9.2</p>"
-        "<p><b>Desarrollado con:</b> Visual Studio 2022</p>");
+        
+        "<p><b>Tecnologias:</b> C++17, Qt 6.9.2</p>"
+        "<p><b>Desarrollado con:</b> Visual Studio 2022</p>"
+        "<p><b>Estructuras de Datos:</b> BST, Grafos, Colas, Pilas, Conjuntos Disjuntos</p>";
+    
+    textEdit->setHtml(aboutText);
+    
+    // Crear boton OK
+    QPushButton* okButton = new QPushButton("Cerrar", &aboutDialog);
+    okButton->setDefault(true);
+    connect(okButton, &QPushButton::clicked, &aboutDialog, &QDialog::accept);
+    
+    // Agregar widgets al layout
+    layout->addWidget(textEdit);
+    layout->addWidget(okButton);
+    
+    aboutDialog.exec();
 }
 
-// Setup signal/slot connections
+// Configurar conexiones signal/slot
 void MainWindow::setupConnections()
 {
-    // BST Tab connections
+    // Conexiones del Tab BST
     connect(ui.btnAddStation, &QPushButton::clicked, this, &MainWindow::onAddStationClicked);
     connect(ui.btnRemoveStation, &QPushButton::clicked, this, &MainWindow::onRemoveStationClicked);
     connect(ui.btnSearchStation, &QPushButton::clicked, this, &MainWindow::onSearchStationClicked);
@@ -1480,7 +1593,7 @@ void MainWindow::setupConnections()
     connect(ui.btnPostOrder, &QPushButton::clicked, this, &MainWindow::onPostOrderClicked);
     connect(ui.btnExportTraversals, &QPushButton::clicked, this, &MainWindow::onExportTraversalsClicked);
     
-    // Graph Tab connections
+    // Conexiones del Tab Grafo
     connect(ui.btnAddRoute, &QPushButton::clicked, this, &MainWindow::onAddRouteClicked);
     connect(ui.btnRemoveRoute, &QPushButton::clicked, this, &MainWindow::onRemoveRouteClicked);
     connect(ui.btnShortestPath, &QPushButton::clicked, this, &MainWindow::onShortestPathClicked);
@@ -1492,13 +1605,13 @@ void MainWindow::setupConnections()
     connect(ui.btnDrawGraph, &QPushButton::clicked, this, &MainWindow::onDrawGraphClicked);
     connect(ui.btnClearGraph, &QPushButton::clicked, this, &MainWindow::onClearGraphClicked);
     
-    // Closure management connections
+    // MANEJO DE CIERRES connections
     connect(ui.btnCloseStation, &QPushButton::clicked, this, &MainWindow::onCloseStationClicked);
     connect(ui.btnCloseRoute, &QPushButton::clicked, this, &MainWindow::onCloseRouteClicked);
     connect(ui.btnApplyClosures, &QPushButton::clicked, this, &MainWindow::onApplyClosuresClicked);
     connect(ui.btnClearClosures, &QPushButton::clicked, this, &MainWindow::onClearClosuresClicked);
     
-    // Accident management connections
+    // Manejo de Accidentes connections
     connect(ui.btnAddAccident, &QPushButton::clicked, this, &MainWindow::onAddAccidentClicked);
     connect(ui.btnClearAccidents, &QPushButton::clicked, this, &MainWindow::onClearAccidentsClicked);
     
@@ -1510,7 +1623,7 @@ void MainWindow::setupConnections()
         }
     });
     
-    // Menu action connections
+    // Conexiones de acciones del menu
     connect(ui.actionCargarDatos, &QAction::triggered, this, &MainWindow::onActionCargarDatos);
     connect(ui.actionGuardarDatos, &QAction::triggered, this, &MainWindow::onActionGuardarDatos);
     connect(ui.actionSalir, &QAction::triggered, this, &MainWindow::onActionSalir);
@@ -1521,10 +1634,10 @@ void MainWindow::setupConnections()
 
 // ==================== Accident Management Slots ====================
 
-// Add accident manually (from selected route)
+// Agregar accidente manualmente desde ruta seleccionada
 void MainWindow::onAddAccidentClicked()
 {
-    // Check if there are stations and routes
+    // Verificar si hay estaciones y rutas
     if (graph.getStationCount() == 0)
     {
         showErrorMessage("Error", "No hay estaciones. Agregue estaciones primero.");
@@ -1574,7 +1687,7 @@ void MainWindow::onAddAccidentClicked()
     
     // Confirm action
     QString confirmMsg = QString(
-        "¿Desea agregar un accidente a esta ruta?\n\n"
+        "Desea agregar un accidente a esta ruta?\n\n"
         "Origen: %1 (%2)\n"
         "Destino: %3 (%4)\n"
         "Incremento: +%5%\n\n"
@@ -1608,7 +1721,7 @@ void MainWindow::onAddAccidentClicked()
             logGraph("[INFO] Grafo redibujado con peso actualizado", "#00CC88");
         }
         
-        showInfoMessage("Éxito", 
+        showInfoMessage("exito", 
             QString("Accidente agregado exitosamente.\n\n"
                     "La ruta %1 <-> %2 ahora tiene un peso de %3 (+%4%)")
             .arg(originId).arg(destId).arg(newWeight, 0, 'f', 1).arg(increment, 0, 'f', 0));
@@ -1623,10 +1736,10 @@ void MainWindow::onAddAccidentClicked()
     }
 }
 
-// Clear all accidents and restore original weights
+// Limpiar todos los accidentes y restaurar pesos originales
 void MainWindow::onClearAccidentsClicked()
 {
-    // Check if there are stations in the graph
+    // Verificar si hay estaciones en el grafo
     if (graph.getStationCount() == 0)
     {
         showErrorMessage("Error", "No hay estaciones cargadas.");
@@ -1636,15 +1749,15 @@ void MainWindow::onClearAccidentsClicked()
     // Check if there are active accidents
     if (graph.getAffectedRoutes().isEmpty())
     {
-        showInfoMessage("Información", "No hay accidentes activos para limpiar.");
+        showInfoMessage("Informacion", "No hay accidentes activos para limpiar.");
         logGraph("[INFO] No hay accidentes activos", "#FFD700");
         return;
     }
     
-    // Confirm action
+    // Confirmar accion
     if (!confirmAction("Limpiar Accidentes", 
         "Esto restaurara los pesos originales de todas las rutas afectadas.\n\n"
-        "¿Desea continuar?"))
+        "Desea continuar?"))
     {
         return;
     }
@@ -1663,7 +1776,28 @@ void MainWindow::onClearAccidentsClicked()
         logGraph("[INFO] Grafo redibujado con pesos originales", "#00CC88");
     }
     
-    showInfoMessage("Éxito", QString("Accidentes limpiados exitosamente.\n\n"
+    showInfoMessage("exito", QString("Accidentes limpiados exitosamente.\n\n"
         "%1 rutas restauradas a sus pesos originales.").arg(affectedCount));
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

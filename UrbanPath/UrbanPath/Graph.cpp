@@ -1,4 +1,4 @@
-#include "Graph.h"
+﻿#include "Graph.h"
 #include <algorithm>
 #include <limits>
 #include <QFile>
@@ -46,7 +46,7 @@ void Graph::removeStation(int id)
     // Remove all edges connected to this station
     adjList.remove(id);
     
-    // Remove edges pointing to this station
+    // Eliminar aristas pointing to this station
     for (auto& neighbors : adjList)
     {
         for (int i = 0; i < neighbors.size(); i++)
@@ -109,7 +109,7 @@ void Graph::addEdge(int origin, int destination, double weight)
         weight = qAbs(weight);
     }
     
-    // Add edge from origin to destination
+    // Agregar arista from origin to destination
     adjList[origin].append(QPair<int, double>(destination, weight));
     
     // If undirected, add reverse edge
@@ -127,7 +127,7 @@ void Graph::removeEdge(int origin, int destination)
         return;
     }
     
-    // Remove edge from origin to destination
+    // Eliminar arista from origin to destination
     QList<QPair<int, double>>& neighbors = adjList[origin];
     for (int i = 0; i < neighbors.size(); i++)
     {
@@ -924,7 +924,7 @@ bool Graph::applyAccident(int originId, int destId, double increment)
     }
     
     qDebug() << "[OK] Accidente aplicado: Ruta (" << originId << "->" << destId 
-             << ") aumentó de" << QString::number(currentWeight, 'f', 1) 
+             << ") aumento de" << QString::number(currentWeight, 'f', 1) 
              << "a" << QString::number(newWeight, 'f', 1) 
              << "(+" << QString::number(increment, 'f', 0) << "%)";
     
@@ -1086,3 +1086,5 @@ QSet<QPair<int, int>> Graph::getAffectedRoutes() const
 {
     return affectedRoutes;
 }
+
+

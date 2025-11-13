@@ -1,4 +1,4 @@
-#include "GraphVisualizer.h"
+﻿#include "GraphVisualizer.h"
 #include <QDebug>
 #include <QFont>
 #include <algorithm>
@@ -144,7 +144,7 @@ void GraphVisualizer::loadBackground(const QString& imagePath)
     normalEdgeWidth = mapSize * 0.005;  // 0.5% of smaller dimension
     optimalEdgeWidth = mapSize * 0.008;  // 0.8% of smaller dimension
     
-    qDebug() << "Tamaños ajustados proporcionalmente:";
+    qDebug() << "Tamanos ajustados proporcionalmente:";
     qDebug() << "  - Radio nodos:" << nodeRadius;
     qDebug() << "  - Ancho aristas:" << normalEdgeWidth;
     
@@ -581,3 +581,5 @@ void GraphVisualizer::setEdgeWidth(double normal, double optimal)
     normalEdgeWidth = normal;
     optimalEdgeWidth = optimal;
 }
+
+

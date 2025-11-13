@@ -1,4 +1,4 @@
-#include "FileManager.h"
+﻿#include "FileManager.h"
 #include "Graph.h"
 #include "StationBST.h"
 #include <QDebug>
@@ -580,7 +580,7 @@ bool FileManager::loadAccidents(Graph& graph, const QString& filename)
     if (filePath.isEmpty())
     {
         // File not found, but this is not necessarily an error
-        qDebug() << "[INFO] No se encontró archivo de accidentes:" << filename;
+        qDebug() << "[INFO] No se encontro archivo de accidentes:" << filename;
         return false;
     }
     
@@ -674,3 +674,5 @@ bool FileManager::saveAccidents(const QString& filename, const Graph& graph)
     
     return true;
 }
+
+

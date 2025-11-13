@@ -1,6 +1,6 @@
 # Archivo de rutas - UrbanPath
 # Formato: origen, destino, peso
-# Generado: 2025-11-13 14:04:02
+# Generado: 2025-11-13 15:45:09
 
 1, 2, 4
 1, 4, 11

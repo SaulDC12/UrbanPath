@@ -4,5 +4,5 @@
 # ESTACION,id          -> Cierra una estacion (aparece en GRIS)
 # RUTA,origen,destino  -> Cierra una ruta (aparece en ROJO)
 #
-# Generado: 2025-11-13 14:04:02
+# Generado: 2025-11-13 15:45:09
 

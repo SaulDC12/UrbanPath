@@ -1,0 +1,47 @@
+========================================
+  REPORTE DE CONECTIVIDAD DEL SISTEMA
+========================================
+Fecha: 2025-11-13
+Hora: 15:45:16
+========================================
+
+
+ANALISIS DE CONECTIVIDAD
+------------------------
+Estaciones en el sistema: 4
+
+Estacion 4 (Estacion 4):
+  Conexiones directas: 1
+    -> Estacion 1 (peso: 11.0)
+
+Estacion 1 (Estacion 1):
+  Conexiones directas: 2
+    -> Estacion 2 (peso: 4.0)
+    -> Estacion 4 (peso: 11.0)
+
+Estacion 2 (Estacion 2):
+  Conexiones directas: 2
+    -> Estacion 1 (peso: 4.0)
+    -> Estacion 3 (peso: 5.0)
+
+Estacion 3 (Estacion 3):
+  Conexiones directas: 1
+    -> Estacion 2 (peso: 5.0)
+
+
+PRUEBA DE ALCANZABILIDAD (BFS)
+------------------------------
+Inicio desde estacion 4:
+
+Estaciones alcanzables:
+  1. Estacion 4
+  2. Estacion 1
+  3. Estacion 2
+  4. Estacion 3
+
+Total alcanzable: 4 de 4
+Conclusion: El grafo esta completamente conectado.
+
+========================================
+  Fin del reporte
+========================================
