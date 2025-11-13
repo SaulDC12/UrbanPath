@@ -302,8 +302,8 @@ void GraphVisualizer::drawStationNode(const Station& station)
     QGraphicsTextItem* text = scene->addText(label);
     
     // Calculate proportional font size based on node radius
-    int fontSize = static_cast<int>(nodeRadius * 0.65);  // 65% of node radius
-    fontSize = std::max(8, std::min(fontSize, 48));  // Clamp between 8 and 48
+    int fontSize = static_cast<int>(nodeRadius * 0.95);  // 95% of node radius (increased for better readability)
+    fontSize = std::max(10, std::min(fontSize, 56));  // Clamp between 10 and 56
     
     QFont font = text->font();
     font.setPointSize(fontSize);
@@ -377,8 +377,8 @@ void GraphVisualizer::drawEdgeWithStyle(int fromId, int toId, double weight, con
     QGraphicsTextItem* label = scene->addText(weightText);
     
     // Calculate proportional font size for weight labels
-    int weightFontSize = static_cast<int>(nodeRadius * 0.35);  // 35% of node radius
-    weightFontSize = std::max(6, std::min(weightFontSize, 24));  // Clamp between 6 and 24
+    int weightFontSize = static_cast<int>(nodeRadius * 0.55);  // 55% of node radius (increased for better readability)
+    weightFontSize = std::max(9, std::min(weightFontSize, 32));  // Clamp between 9 and 32
     
     QFont font = label->font();
     font.setPointSize(weightFontSize);
